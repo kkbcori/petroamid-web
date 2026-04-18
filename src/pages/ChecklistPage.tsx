@@ -5,6 +5,7 @@ import { Colors } from '../utils/theme';
 import { buildTimeline, calcReadinessScore, type TimelineEvent } from '../utils/timelineCalculator';
 import { COUNTRIES } from '../data/travelRequirements';
 import { FREE_CHECKLIST_IDS } from '../store/appStore';
+import { ChecklistScene, CHECKLIST_COLOR } from '../components/Illustrations';
 import { format, differenceInDays } from 'date-fns';
 
 const CAT_ICONS: Record<string, string> = {
@@ -54,15 +55,19 @@ export default function ChecklistPage() {
         padding: '8px 12px', cursor: 'pointer', color: Colors.creammid, fontSize: 14, marginBottom: 16,
       }}>← Dashboard</button>
 
-      {/* Hero */}
-      <div style={{ background: Colors.navyMid, border: `1px solid ${Colors.border}`, borderRadius: 20, padding: 20, marginBottom: 20, boxShadow: `0 4px 16px ${Colors.shadow}` }}>
+      {/* Hero with illustration */}
+      <div style={{ position: 'relative', background: CHECKLIST_COLOR, borderRadius: 20, marginBottom: 20, overflow: 'hidden', boxShadow: `0 4px 20px ${CHECKLIST_COLOR}55` }}>
+        <div style={{ position: 'absolute', right: 0, bottom: 0, width: '55%', opacity: 0.35 }}>
+          <ChecklistScene />
+        </div>
+        <div style={{ position: 'relative', zIndex: 1, padding: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
           <span style={{ fontSize: 40 }}>{pet?.avatarEmoji ?? '🐾'}</span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700 }}>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: 'white' }}>
               {trip.tripName ?? `${pet?.name} → ${country?.name ?? trip.destination}`}
             </div>
-            <div style={{ fontSize: 13, color: Colors.creammid }}>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
               {format(new Date(trip.travelDate), 'EEEE, MMM d yyyy')} ·{' '}
               {daysLeft === 0 ? '🛫 Today!' : daysLeft > 0 ? `${daysLeft} days away` : `${Math.abs(daysLeft)} days ago`}
             </div>
@@ -84,9 +89,10 @@ export default function ChecklistPage() {
           <div style={{ width: `${score}%`, height: '100%', background: barColor, borderRadius: 8, transition: 'width .4s' }} />
         </div>
 
-        {/* Summary */}
-        <div style={{ marginTop: 12, padding: '10px 14px', background: Colors.navyLight, borderRadius: 10 }}>
-          <p style={{ fontSize: 13, color: Colors.creammid, lineHeight: 1.5, margin: 0 }}>{trip.scenario?.summary}</p>
+          {/* Summary */}
+          <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(255,255,255,0.15)', borderRadius: 10 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: 0 }}>{trip.scenario?.summary}</p>
+          </div>
         </div>
       </div>
 

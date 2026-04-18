@@ -5,6 +5,7 @@ import { useData } from '../store/AppContext';
 import { downloadBundle, importBundle } from '../lib/syncService';
 import { Colors } from '../utils/theme';
 import type { Trip } from '../store/appStore';
+import { PageHeader, SettingsScene, SETTINGS_COLOR } from '../components/Illustrations';
 
 const AVATARS = ['🐶','🐱','🦮','🐕','🐈','🐩','🦜','🐇','🐾','🌍'];
 
@@ -51,13 +52,9 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-        <button onClick={() => navigate('/')} style={{
-          background: Colors.navyLight, border: 'none', borderRadius: 10,
-          padding: '8px 12px', cursor: 'pointer', color: Colors.creammid, fontSize: 14,
-        }}>← Back</button>
-        <h1 style={{ fontSize: 24, fontFamily: "'Playfair Display', Georgia, serif" }}>Settings</h1>
-      </div>
+      <PageHeader title="Settings ⚙️" subtitle="Profile, backup & data management" color={SETTINGS_COLOR}>
+        <SettingsScene />
+      </PageHeader>
 
       {msg && <Alert color={Colors.green} bg={Colors.greenBg}>{msg}</Alert>}
       {err && <Alert color={Colors.red}   bg={Colors.redBg}  >{err}</Alert>}

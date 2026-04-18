@@ -1,4 +1,5 @@
 import logoUrl from '../assets/logo.jpg';
+import { DashboardScene, DASHBOARD_COLOR } from '../components/Illustrations';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfileStore } from '../store/profileStore';
@@ -21,16 +22,26 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontFamily: "'Playfair Display', Georgia, serif", color: Colors.cream, marginBottom: 4 }}>
-          {getGreeting()}, {firstName} {profile?.avatarEmoji}
-        </h1>
-        <p style={{ color: Colors.creammid, fontSize: 15 }}>
-          {pets.length === 0
-            ? 'Add your first pet to get started'
-            : `${pets.length} pet${pets.length > 1 ? 's' : ''} · ${activeTrips.length} upcoming trip${activeTrips.length !== 1 ? 's' : ''}`}
-        </p>
+      {/* ── Illustration header ── */}
+      <div style={{
+        position: 'relative', height: 220, overflow: 'hidden',
+        borderRadius: '0 0 28px 28px', marginBottom: 24, marginLeft: -16, marginRight: -16,
+        background: DASHBOARD_COLOR,
+      }}>
+        <DashboardScene />
+        <div style={{ position: 'absolute', top: 20, left: 20 }}>
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 26, fontWeight: 700, color: 'white' }}>
+            {getGreeting()}, {firstName} {profile?.avatarEmoji}
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 4 }}>
+            {pets.length === 0
+              ? 'Add your first pet to get started'
+              : `${pets.length} pet${pets.length > 1 ? 's' : ''} · ${activeTrips.length} upcoming trip${activeTrips.length !== 1 ? 's' : ''}`}
+          </div>
+        </div>
       </div>
+
+
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
         <QuickCard icon="🐾" title="Add a Pet"   desc="Dogs & cats"   onClick={() => navigate('/pets/add')} />
