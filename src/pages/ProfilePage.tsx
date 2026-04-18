@@ -47,7 +47,7 @@ export default function ProfilePage() {
         objectFit:      'contain',
         objectPosition: 'bottom right',
         opacity:         0.50,
-        mixBlendMode:   'multiply',
+        // mixBlendMode removed — transparent areas now show banner bg colour
         pointerEvents:  'none',
         userSelect:     'none',
       }} />

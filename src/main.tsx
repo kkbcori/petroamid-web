@@ -8,11 +8,11 @@ const style = document.createElement('style');
 style.textContent = globalCSS;
 document.head.appendChild(style);
 
-// Restore path from GitHub Pages 404.html redirect
+// Restore path saved by 404.html on GitHub Pages
 const redirect = sessionStorage.getItem('spa-redirect');
 if (redirect) {
   sessionStorage.removeItem('spa-redirect');
-  window.history.replaceState(null, '', redirect);
+  window.history.replaceState(null, '', '/petroamid-web' + redirect);
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
