@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// PetRoamID – Design Tokens  (web version — identical palette to RN)
-// "Sunny Pet Parent" — warm off-white, coral, amber
-// ─────────────────────────────────────────────────────────────────────────────
-
 export const Colors = {
   navy:        '#FFF8F0',
   navyMid:     '#FFFFFF',
@@ -26,12 +21,8 @@ export const Colors = {
   blue:        '#3B82F6',
   blueBg:      'rgba(59,130,246,0.12)',
   categoryColors: {
-    document:    '#3B82F6',
-    vaccination: '#22C55E',
-    health:      '#F97316',
-    booking:     '#A855F7',
-    microchip:   '#FF6B6B',
-    form:        '#FFB347',
+    document: '#3B82F6', vaccination: '#22C55E', health: '#F97316',
+    booking: '#A855F7', microchip: '#FF6B6B', form: '#FFB347',
   },
   border:      'rgba(45,27,0,0.10)',
   borderLight: 'rgba(45,27,0,0.06)',
@@ -42,7 +33,6 @@ export const Colors = {
 export const Spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 } as const;
 export const Radius  = { sm: 8, md: 14, lg: 20, xl: 28, pill: 999 } as const;
 
-// CSS for global injection
 export const globalCSS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body, #root { height: 100%; }
@@ -51,18 +41,11 @@ export const globalCSS = `
     background: ${Colors.navy};
     color: ${Colors.cream};
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; }
   button { cursor: pointer; border: none; background: none; font-family: inherit; }
-  input, select, textarea {
-    font-family: inherit;
-    outline: none;
-  }
+  input, select, textarea { font-family: inherit; outline: none; }
   a { color: inherit; text-decoration: none; }
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(45,27,0,0.15); border-radius: 3px; }
 `;
-
-export type CategoryKey = keyof typeof Colors.categoryColors;

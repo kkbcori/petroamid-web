@@ -1,105 +1,51 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// PetRoamID – Supabase Sync Service
+// PetRoamID – Sync Service  (local file-based, no backend)
 //
-// Strategy: "last-write-wins" upsert
-//   • On app load (and tab focus): pull from Supabase → hydrate local store
-//   • On every data mutation: debounced push to Supabase
-//   • Offline: writes stay in localStorage; sync on next successful push
+// Cross-device sync works via .petroamid JSON file:
+//   Export on Device A → transfer file → Import on Device B
+//
+// Works identically between:
+//   • Web ↔ Web
+//   • Web ↔ Android (once RN app has export/import)
+//   • Web ↔ iOS
 // ─────────────────────────────────────────────────────────────────────────────
-import { supabase } from './supabase';
 import type { Pet, Trip, PurchaseRecord } from '../store/appStore';
+import type { Profile } from '../store/profileStore';
 
-export interface CloudData {
-  pets:      Pet[];
-  trips:     Trip[];
-  purchases: PurchaseRecord[];
-  updatedAt: string;
+export interface PetRoamBundle {
+  version:    number;
+  exportedAt: string;
+  profile:    Profile;
+  pets:       Pet[];
+  trips:      Trip[];
+  purchases:  PurchaseRecord[];
 }
 
-// ── Pull ──────────────────────────────────────────────────────────────────────
-export async function pullFromCloud(userId: string): Promise<CloudData | null> {
-  const { data, error } = await supabase
-    .from('user_data')
-    .select('pets, trips, purchases, updated_at')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (error) { console.error('[sync] pull error:', error.message); return null; }
-  if (!data)  return null;
-
-  return {
-    pets:      (data.pets      as Pet[])            ?? [],
-    trips:     (data.trips     as Trip[])           ?? [],
-    purchases: (data.purchases as PurchaseRecord[]) ?? [],
-    updatedAt: data.updated_at,
-  };
-}
-
-// ── Push ──────────────────────────────────────────────────────────────────────
-export async function pushToCloud(
-  userId: string,
-  payload: { pets: Pet[]; trips: Trip[]; purchases: PurchaseRecord[] },
-): Promise<{ error: string | null }> {
-  const { error } = await supabase
-    .from('user_data')
-    .upsert(
-      {
-        user_id:   userId,
-        pets:      payload.pets,
-        trips:     payload.trips,
-        purchases: payload.purchases,
-      },
-      { onConflict: 'user_id' },
-    );
-
-  if (error) return { error: error.message };
-  return { error: null };
-}
-
-// ── Debounce helper ───────────────────────────────────────────────────────────
-let _pushTimer: ReturnType<typeof setTimeout> | null = null;
-
-export function debouncedPush(
-  userId: string,
-  payload: { pets: Pet[]; trips: Trip[]; purchases: PurchaseRecord[] },
-  onResult: (err: string | null) => void,
-  delayMs = 1200,
-) {
-  if (_pushTimer) clearTimeout(_pushTimer);
-  _pushTimer = setTimeout(async () => {
-    const { error } = await pushToCloud(userId, payload);
-    onResult(error);
-    _pushTimer = null;
-  }, delayMs);
-}
-
-// ── JSON file export (offline fallback, unchanged) ────────────────────────────
-export function downloadJSON(payload: { pets: Pet[]; trips: Trip[]; purchases: PurchaseRecord[] }, name: string) {
-  const blob = new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), ...payload }, null, 2)], {
-    type: 'application/json',
-  });
-  const url = URL.createObjectURL(blob);
-  const a   = document.createElement('a');
+export function downloadBundle(bundle: PetRoamBundle): void {
+  const json = JSON.stringify(bundle, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
   a.href     = url;
-  a.download = `PetRoamID_${name}_${new Date().toISOString().slice(0, 10)}.petroamid`;
+  a.download = `PetRoamID_${bundle.profile.displayName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.petroamid`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-export function importJSON(): Promise<{ pets: Pet[]; trips: Trip[]; purchases: PurchaseRecord[] }> {
+export function importBundle(): Promise<PetRoamBundle> {
   return new Promise((resolve, reject) => {
-    const input = document.createElement('input');
-    input.type   = 'file';
-    input.accept = '.petroamid,.json';
+    const input    = document.createElement('input');
+    input.type     = 'file';
+    input.accept   = '.petroamid,.json';
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) { reject(new Error('No file selected')); return; }
       const reader = new FileReader();
       reader.onload = (ev) => {
         try {
-          const data = JSON.parse(ev.target?.result as string);
-          if (!data.pets || !data.trips) throw new Error('Invalid file');
-          resolve({ pets: data.pets, trips: data.trips, purchases: data.purchases ?? [] });
+          const bundle = JSON.parse(ev.target?.result as string) as PetRoamBundle;
+          if (!bundle.pets || !bundle.trips) throw new Error('Invalid PetRoamID backup file');
+          resolve(bundle);
         } catch (err) { reject(err); }
       };
       reader.readAsText(file);

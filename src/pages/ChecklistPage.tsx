@@ -4,7 +4,6 @@ import { useData } from '../store/AppContext';
 import { Colors } from '../utils/theme';
 import { buildTimeline, calcReadinessScore, type TimelineEvent } from '../utils/timelineCalculator';
 import { COUNTRIES } from '../data/travelRequirements';
-import type { ChecklistItem } from '../data/travelRequirements';
 import { FREE_CHECKLIST_IDS } from '../store/appStore';
 import { format, differenceInDays } from 'date-fns';
 
@@ -18,16 +17,20 @@ export default function ChecklistPage() {
   const data       = useData();
   const trip       = data.trips.find(t => t.id === tripId);
   const pet        = data.pets.find(p => p.id === trip?.petId);
-  const [expanded, setExpanded]       = useState<string | null>(null);
+  const [expanded,     setExpanded]     = useState<string | null>(null);
   const [unlockPrompt, setUnlockPrompt] = useState(false);
 
-  if (!trip) return <div style={{ padding: 32, color: Colors.creammid }}>Trip not found.</div>;
+  if (!trip) return (
+    <div style={{ padding: 32, textAlign: 'center', color: Colors.creammid }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+      Trip not found. <button onClick={() => navigate('/')} style={{ color: Colors.teal, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Go home →</button>
+    </div>
+  );
 
   const timeline = useMemo(
     () => buildTimeline(trip.checklist ?? [], new Date(trip.travelDate)),
     [trip.checklist, trip.travelDate],
   );
-
   const score    = calcReadinessScore(trip.checklist ?? []);
   const daysLeft = differenceInDays(new Date(trip.travelDate), new Date());
   const country  = COUNTRIES.find(c => c.code === trip.destination);
@@ -38,18 +41,10 @@ export default function ChecklistPage() {
     data.toggleChecklistItem(tripId!, itemId);
   }
 
-  function handleUnlock() {
-    data.unlockTrip(tripId!, 'WEB-DEMO-' + Date.now());
-    setUnlockPrompt(false);
-  }
-
   const groups = useMemo(() => {
-    const grouped: Record<string, TimelineEvent[]> = {};
-    timeline.forEach(ev => {
-      if (!grouped[ev.category]) grouped[ev.category] = [];
-      grouped[ev.category].push(ev);
-    });
-    return grouped;
+    const g: Record<string, TimelineEvent[]> = {};
+    timeline.forEach(ev => { if (!g[ev.category]) g[ev.category] = []; g[ev.category].push(ev); });
+    return g;
   }, [timeline]);
 
   return (
@@ -59,10 +54,8 @@ export default function ChecklistPage() {
         padding: '8px 12px', cursor: 'pointer', color: Colors.creammid, fontSize: 14, marginBottom: 16,
       }}>← Dashboard</button>
 
-      <div style={{
-        background: Colors.navyMid, border: `1px solid ${Colors.border}`,
-        borderRadius: 20, padding: 20, marginBottom: 20, boxShadow: `0 4px 16px ${Colors.shadow}`,
-      }}>
+      {/* Hero */}
+      <div style={{ background: Colors.navyMid, border: `1px solid ${Colors.border}`, borderRadius: 20, padding: 20, marginBottom: 20, boxShadow: `0 4px 16px ${Colors.shadow}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
           <span style={{ fontSize: 40 }}>{pet?.avatarEmoji ?? '🐾'}</span>
           <div style={{ flex: 1 }}>
@@ -81,6 +74,8 @@ export default function ChecklistPage() {
             }}>🔓 Unlock</button>
           )}
         </div>
+
+        {/* Score bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{ fontSize: 13, fontWeight: 600 }}>Readiness Score</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: barColor }}>{score}%</span>
@@ -88,26 +83,26 @@ export default function ChecklistPage() {
         <div style={{ background: Colors.navyLight, borderRadius: 8, height: 8, overflow: 'hidden' }}>
           <div style={{ width: `${score}%`, height: '100%', background: barColor, borderRadius: 8, transition: 'width .4s' }} />
         </div>
+
+        {/* Summary */}
         <div style={{ marginTop: 12, padding: '10px 14px', background: Colors.navyLight, borderRadius: 10 }}>
-          <p style={{ fontSize: 13, color: Colors.creammid, lineHeight: 1.5 }}>{trip.scenario?.summary}</p>
+          <p style={{ fontSize: 13, color: Colors.creammid, lineHeight: 1.5, margin: 0 }}>{trip.scenario?.summary}</p>
         </div>
       </div>
 
+      {/* Unlock modal */}
       {unlockPrompt && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
-        }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ background: Colors.navyMid, borderRadius: 20, padding: 28, maxWidth: 360, width: '100%', boxShadow: `0 16px 48px ${Colors.shadow}` }}>
             <div style={{ fontSize: 40, textAlign: 'center', marginBottom: 12 }}>🔓</div>
-            <h3 style={{ textAlign: 'center', marginBottom: 8 }}>Unlock Full Checklist</h3>
+            <h3 style={{ textAlign: 'center', marginBottom: 8, fontSize: 20 }}>Unlock Full Checklist</h3>
             <p style={{ color: Colors.creammid, fontSize: 14, textAlign: 'center', marginBottom: 20, lineHeight: 1.5 }}>
-              Get access to all {trip.checklist?.length} items, timeline tracking, and official source links.
+              Get access to all {trip.checklist?.length} items, timeline tracking, and official source links for this trip.
             </p>
-            <button onClick={handleUnlock} style={{
-              width: '100%', padding: '14px', borderRadius: 14, background: Colors.teal,
+            <button onClick={() => { data.unlockTrip(tripId!); setUnlockPrompt(false); }} style={{
+              width: '100%', padding: '14px', borderRadius: 14, background: '#2A9D8F',
               color: '#fff', border: 'none', fontWeight: 700, fontSize: 16, cursor: 'pointer', marginBottom: 10,
-            }}>✨ Unlock This Trip (Demo)</button>
+            }}>✨ Unlock This Trip</button>
             <button onClick={() => setUnlockPrompt(false)} style={{
               width: '100%', padding: '10px', borderRadius: 12,
               background: Colors.navyLight, border: `1px solid ${Colors.border}`,
@@ -117,6 +112,7 @@ export default function ChecklistPage() {
         </div>
       )}
 
+      {/* Checklist groups */}
       {Object.entries(groups).map(([cat, events]) => (
         <div key={cat} style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
@@ -129,8 +125,9 @@ export default function ChecklistPage() {
             const isExpanded = expanded === ev.id;
             return (
               <div key={ev.id} style={{
-                background: Colors.navyMid, border: `1px solid ${ev.completed ? Colors.green + '44' : Colors.border}`,
-                borderRadius: 14, marginBottom: 8, boxShadow: `0 1px 6px ${Colors.shadow}`,
+                background: Colors.navyMid, borderRadius: 14, marginBottom: 8,
+                border: `1px solid ${ev.completed ? Colors.green + '44' : Colors.border}`,
+                boxShadow: `0 1px 6px ${Colors.shadow}`,
                 opacity: ev.status === 'not_eligible' ? 0.5 : 1,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', cursor: 'pointer' }}
@@ -145,11 +142,9 @@ export default function ChecklistPage() {
                     {ev.completed ? '✓' : isLocked ? '🔒' : ''}
                   </button>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontWeight: 600, fontSize: 14,
-                      color: ev.completed ? Colors.creammid : Colors.cream,
-                      textDecoration: ev.completed ? 'line-through' : 'none',
-                    }}>{ev.title}</div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: ev.completed ? Colors.creammid : Colors.cream, textDecoration: ev.completed ? 'line-through' : 'none' }}>
+                      {ev.title}
+                    </div>
                     <StatusBadge status={ev.status} daysUntilDue={ev.daysUntilDue} mandatory={ev.mandatory} />
                   </div>
                   <span style={{ color: Colors.creammid, fontSize: 12 }}>{isExpanded ? '▲' : '▼'}</span>
@@ -163,7 +158,7 @@ export default function ChecklistPage() {
                       </div>
                     )}
                     <a href={ev.officialSource} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: Colors.teal, fontWeight: 600 }}>
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#2A9D8F', fontWeight: 600 }}>
                       🔗 Official Source ↗
                     </a>
                   </div>
@@ -177,17 +172,15 @@ export default function ChecklistPage() {
   );
 }
 
-function StatusBadge({ status, daysUntilDue, mandatory }: {
-  status: string; daysUntilDue: number | null; mandatory: boolean;
-}) {
+function StatusBadge({ status, daysUntilDue, mandatory }: { status: string; daysUntilDue: number | null; mandatory: boolean }) {
   const cfg: Record<string, { bg: string; color: string; label: string }> = {
     overdue:      { bg: Colors.redBg,    color: Colors.red,      label: '🔴 Overdue'        },
     urgent:       { bg: Colors.orangeBg, color: Colors.orange,   label: '🟠 Urgent'         },
     upcoming:     { bg: Colors.yellowBg, color: Colors.yellow,   label: '🟡 Upcoming'       },
     scheduled:    { bg: Colors.blueBg,   color: Colors.blue,     label: '🔵 Scheduled'      },
     completed:    { bg: Colors.greenBg,  color: Colors.green,    label: '✅ Done'           },
-    anytime:      { bg: Colors.navyLight,color: Colors.creammid, label: '⬜ Anytime'        },
-    not_eligible: { bg: Colors.navyLight,color: Colors.creammid, label: '⊘ Not applicable' },
+    anytime:      { bg: Colors.navyLight, color: Colors.creammid, label: '⬜ Anytime'       },
+    not_eligible: { bg: Colors.navyLight, color: Colors.creammid, label: '⊘ Not applicable' },
   };
   const c = cfg[status] ?? cfg['anytime'];
   return (

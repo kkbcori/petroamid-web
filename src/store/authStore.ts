@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
+import { supabase, SITE_URL } from '../lib/supabase';
 import type { User, Session, AuthError } from '@supabase/supabase-js';
 
 export type AuthMode = 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
@@ -16,7 +16,6 @@ interface AuthState {
   avatarUrl:    () => string | null;
   userId:       () => string | null;
 
-  signUp:       (email: string, password: string, name: string) => Promise<{ error: AuthError | null }>;
   signIn:       (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInMagic:  (email: string) => Promise<{ error: AuthError | null }>;
   signOut:      () => Promise<void>;
@@ -39,26 +38,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loadSession: async () => {
     set({ mode: 'loading' });
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      set({ user: session.user, session, mode: 'authenticated' });
-    } else {
-      set({ user: null, session: null, mode: 'unauthenticated' });
-    }
+    if (session) set({ user: session.user, session, mode: 'authenticated' });
+    else         set({ user: null, session: null, mode: 'unauthenticated' });
+
     supabase.auth.onAuthStateChange((_event, session) => {
       if (session) set({ user: session.user, session, mode: 'authenticated' });
       else         set({ user: null, session: null, mode: 'unauthenticated' });
     });
-  },
-
-  signUp: async (email, password, name) => {
-    set({ mode: 'loading' });
-    const { data, error } = await supabase.auth.signUp({
-      email, password, options: { data: { display_name: name } },
-    });
-    if (error) { set({ mode: 'unauthenticated' }); return { error }; }
-    if (data.session) set({ user: data.user, session: data.session, mode: 'authenticated' });
-    else              set({ mode: 'unauthenticated' });
-    return { error: null };
   },
 
   signIn: async (email, password) => {
@@ -69,8 +55,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return { error: null };
   },
 
+  // Magic link — redirectTo must exactly match an entry in Supabase → Auth → URL Configuration → Redirect URLs
   signInMagic: async (email) => {
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: SITE_URL,
+      },
+    });
     return { error: error ?? null };
   },
 
