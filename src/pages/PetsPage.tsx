@@ -5,7 +5,7 @@ import { Colors } from '../utils/theme';
 import type { Pet, VaccinationRecord } from '../store/appStore';
 import { hasValidVaccination } from '../store/appStore';
 import { format, differenceInYears, differenceInMonths } from 'date-fns';
-import { PageHeader, PetsScene, PETS_COLOR } from '../components/Illustrations';
+import { PetsBanner, PETS_COLOR } from '../components/Illustrations';
 
 export default function PetsPage() {
   const navigate = useNavigate();
@@ -20,24 +20,22 @@ export default function PetsPage() {
 
   return (
     <div>
-      <PageHeader title="My Pets 🐾" subtitle="Manage your furry travel companions" color={PETS_COLOR}>
-        <PetsScene />
-      </PageHeader>
+      <PetsBanner />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
         <button onClick={() => navigate('/pets/add')} style={{
-          background: PETS_COLOR, color: '#fff', border: 'none',
+          background: '#8B5E00', color: '#fff', border: 'none',
           padding: '10px 18px', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer',
-          boxShadow: `0 4px 12px ${PETS_COLOR}55`,
+          boxShadow: '0 4px 12px rgba(139,94,0,0.25)',
         }}>+ Add Pet</button>
       </div>
 
       {pets.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '40px 24px', background: Colors.navyMid, borderRadius: 20, border: `2px dashed ${Colors.border}` }}>
+        <div style={{ textAlign: 'center', padding: '40px 24px', background: PETS_COLOR, borderRadius: 20, border: '1px solid rgba(0,0,0,0.06)' }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🐾</div>
           <h2 style={{ fontSize: 20, marginBottom: 8 }}>No pets yet</h2>
           <p style={{ color: Colors.creammid, marginBottom: 20 }}>Add your dog or cat to generate a travel checklist.</p>
-          <button onClick={() => navigate('/pets/add')} style={{ background: PETS_COLOR, color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}>Add My Pet</button>
+          <button onClick={() => navigate('/pets/add')} style={{ background: '#8B5E00', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}>Add My Pet</button>
         </div>
       )}
 
@@ -46,7 +44,7 @@ export default function PetsPage() {
         return (
           <div key={pet.id} style={{ background: Colors.navyMid, border: `1px solid ${Colors.border}`, borderRadius: 18, marginBottom: 14, overflow: 'hidden', boxShadow: `0 2px 10px ${Colors.shadow}` }}>
             <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: `${PETS_COLOR}22`, border: `2px solid ${PETS_COLOR}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: `${PETS_COLOR}`, border: `2px solid #D97706`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>
                 {pet.avatarEmoji ?? (pet.species === 'cat' ? '🐱' : '🐶')}
               </div>
               <div style={{ flex: 1 }}>
@@ -61,10 +59,10 @@ export default function PetsPage() {
               </div>
             </div>
             <div style={{ padding: '0 18px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <InfoChip label="Microchip"    value={pet.microchipNumber ? '✅ ' + pet.microchipNumber.slice(0, 8) + '…' : '❌ Not recorded'} color={PETS_COLOR} />
-              <InfoChip label="Vaccinations" value={vaccOk ? `✅ ${pet.vaccinations.length} record${pet.vaccinations.length > 1 ? 's' : ''}` : '⚠️ Check validity'} color={PETS_COLOR} />
-              {pet.vetClinic && <InfoChip label="Vet"    value={pet.vetClinic} color={PETS_COLOR} />}
-              {pet.color     && <InfoChip label="Colour" value={pet.color}     color={PETS_COLOR} />}
+              <Chip label="Microchip"    value={pet.microchipNumber ? '✅ ' + pet.microchipNumber.slice(0, 8) + '…' : '❌ Not recorded'} />
+              <Chip label="Vaccinations" value={vaccOk ? `✅ ${pet.vaccinations.length} record${pet.vaccinations.length > 1 ? 's' : ''}` : '⚠️ Check validity'} />
+              {pet.vetClinic && <Chip label="Vet"    value={pet.vetClinic} />}
+              {pet.color     && <Chip label="Colour" value={pet.color} />}
             </div>
             {pet.vaccinations.length > 0 && (
               <div style={{ borderTop: `1px solid ${Colors.border}`, padding: '10px 18px', background: Colors.navyLight }}>
@@ -92,9 +90,9 @@ export default function PetsPage() {
     </div>
   );
 }
-function InfoChip({ label, value, color }: { label: string; value: string; color: string }) {
+function Chip({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ background: Colors.navyLight, borderRadius: 8, padding: '8px 10px', borderLeft: `3px solid ${color}` }}>
+    <div style={{ background: Colors.navyLight, borderRadius: 8, padding: '8px 10px', borderLeft: `3px solid #D97706` }}>
       <div style={{ fontSize: 10, fontWeight: 700, color: Colors.creammid, marginBottom: 2, textTransform: 'uppercase' }}>{label}</div>
       <div style={{ fontSize: 13, color: Colors.cream }}>{value}</div>
     </div>

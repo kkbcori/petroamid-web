@@ -1,5 +1,3 @@
-import logoUrl from '../assets/logo.jpg';
-import { DashboardScene, DASHBOARD_COLOR } from '../components/Illustrations';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfileStore } from '../store/profileStore';
@@ -9,39 +7,25 @@ import { calcReadinessScore } from '../utils/timelineCalculator';
 import { COUNTRIES } from '../data/travelRequirements';
 import type { Pet, Trip } from '../store/appStore';
 import { format, differenceInDays } from 'date-fns';
+import { DashboardBanner, DASHBOARD_COLOR } from '../components/Illustrations';
+import logoUrl from '../assets/logo.jpg';
 
 export default function DashboardPage() {
   const navigate  = useNavigate();
   const profile   = useProfileStore(s => s.activeProfile());
   const data      = useData();
   const { pets, trips } = data;
-
   const activeTrips = trips.filter((t: Trip) => differenceInDays(new Date(t.travelDate), new Date()) >= 0);
   const pastTrips   = trips.filter((t: Trip) => differenceInDays(new Date(t.travelDate), new Date()) < 0);
   const firstName   = profile?.displayName.split(' ')[0] ?? 'there';
+  const greeting    = getGreeting();
 
   return (
     <div>
-      {/* ── Illustration header ── */}
-      <div style={{
-        position: 'relative', height: 220, overflow: 'hidden',
-        borderRadius: '0 0 28px 28px', marginBottom: 24, marginLeft: -16, marginRight: -16,
-        background: DASHBOARD_COLOR,
-      }}>
-        <DashboardScene />
-        <div style={{ position: 'absolute', top: 20, left: 20 }}>
-          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 26, fontWeight: 700, color: 'white' }}>
-            {getGreeting()}, {firstName} {profile?.avatarEmoji}
-          </div>
-          <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 4 }}>
-            {pets.length === 0
-              ? 'Add your first pet to get started'
-              : `${pets.length} pet${pets.length > 1 ? 's' : ''} · ${activeTrips.length} upcoming trip${activeTrips.length !== 1 ? 's' : ''}`}
-          </div>
-        </div>
-      </div>
-
-
+      <DashboardBanner
+        title={`${greeting}, ${firstName} ${profile?.avatarEmoji ?? ''}`}
+        subtitle={pets.length === 0 ? 'Add your first pet to get started' : `${pets.length} pet${pets.length > 1 ? 's' : ''} · ${activeTrips.length} upcoming trip${activeTrips.length !== 1 ? 's' : ''}`}
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
         <QuickCard icon="🐾" title="Add a Pet"   desc="Dogs & cats"   onClick={() => navigate('/pets/add')} />
@@ -72,7 +56,7 @@ export default function DashboardPage() {
                 background: Colors.navyMid, border: `1px solid ${Colors.border}`,
                 borderRadius: 14, padding: 16, textAlign: 'center', cursor: 'pointer',
               }}>
-                <div style={{ fontSize: 36, marginBottom: 6 }}>{pet.avatarEmoji ?? (pet.species === 'cat' ? '🐱' : '🐶')}</div>
+                <div style={{ fontSize: 34, marginBottom: 6 }}>{pet.avatarEmoji ?? (pet.species === 'cat' ? '🐱' : '🐶')}</div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{pet.name}</div>
                 <div style={{ fontSize: 12, color: Colors.creammid, textTransform: 'capitalize' }}>{pet.species}</div>
               </div>
@@ -82,8 +66,8 @@ export default function DashboardPage() {
       )}
 
       {pets.length === 0 && trips.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '48px 24px', background: Colors.navyMid, borderRadius: 20, border: `2px dashed ${Colors.border}` }}>
-          <img src={logoUrl} alt="" style={{ width: 80, height: 80, borderRadius: 18, objectFit: 'cover', marginBottom: 16, display: 'block', margin: '0 auto 16px' }} />
+        <div style={{ textAlign: 'center', padding: '40px 24px', background: DASHBOARD_COLOR, borderRadius: 20, border: `1px solid rgba(0,0,0,0.06)` }}>
+          <img src={logoUrl} alt="" style={{ width: 72, height: 72, borderRadius: 16, objectFit: 'cover', marginBottom: 14, display: 'block', margin: '0 auto 14px' }} />
           <h2 style={{ fontSize: 22, fontFamily: "'Playfair Display', Georgia, serif", marginBottom: 8 }}>Ready to Explore?</h2>
           <p style={{ color: Colors.creammid, marginBottom: 24, lineHeight: 1.6 }}>Add your pet to generate a personalised travel compliance checklist.</p>
           <button onClick={() => navigate('/pets/add')} style={{ background: '#2A9D8F', color: '#fff', border: 'none', padding: '14px 28px', borderRadius: 14, fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>🐾 Add My Pet</button>
@@ -130,7 +114,7 @@ function Section({ title, children, action }: { title: string; children: React.R
 function QuickCard({ icon, title, desc, onClick }: { icon: string; title: string; desc: string; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{ background: Colors.navyMid, border: `1px solid ${Colors.border}`, borderRadius: 16, padding: '18px 16px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4, boxShadow: `0 2px 8px ${Colors.shadow}` }}>
-      <div style={{ fontSize: 28 }}>{icon}</div>
+      <div style={{ fontSize: 26 }}>{icon}</div>
       <div style={{ fontWeight: 700, fontSize: 15, color: Colors.cream }}>{title}</div>
       <div style={{ fontSize: 12, color: Colors.creammid }}>{desc}</div>
     </button>
@@ -142,7 +126,7 @@ function TripCard({ pet, trip, score, daysLeft, countryName, onClick }: { pet: P
     <div onClick={onClick} style={{ background: Colors.navyMid, border: `1px solid ${Colors.border}`, borderRadius: 16, padding: 20, marginBottom: 12, cursor: 'pointer', boxShadow: `0 2px 12px ${Colors.shadow}` }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 32 }}>{pet?.avatarEmoji ?? '🐾'}</span>
+          <span style={{ fontSize: 30 }}>{pet?.avatarEmoji ?? '🐾'}</span>
           <div>
             <div style={{ fontWeight: 700, fontSize: 15, color: Colors.cream }}>{pet?.name ?? 'Pet'} → {countryName}</div>
             <div style={{ fontSize: 12, color: Colors.creammid }}>{format(new Date(trip.travelDate), 'MMM d, yyyy')} · {daysLeft === 0 ? 'Today!' : `${daysLeft}d away`}</div>
