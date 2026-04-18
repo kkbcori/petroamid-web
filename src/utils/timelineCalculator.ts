@@ -83,7 +83,7 @@ export function getReadinessStatus(events: TimelineEvent[]): {
   nextActionDate: Date | null;
   nextActionTitle: string | null;
 } {
-  const mandatory          = events.filter(e => e.mandatory && !e.notEligible);
+  const mandatory          = events.filter(e => e.mandatory && e.status !== 'not_eligible');
   const completedMandatory = mandatory.filter(e => e.completed);
   const hasOverdue         = mandatory.some(e => e.status === 'overdue');
   const percentComplete    = mandatory.length > 0
