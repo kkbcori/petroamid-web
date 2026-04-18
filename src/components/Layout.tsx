@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useProfileStore } from '../store/profileStore';
 import { Colors } from '../utils/theme';
+import logoUrl from '../assets/logo.jpg';
 
-const LOGO = `${import.meta.env.BASE_URL}logo.jpg`;
-const NAV  = [
+const NAV = [
   { to: '/',          icon: '🏠', label: 'Home'     },
   { to: '/pets',      icon: '🐾', label: 'My Pets'  },
   { to: '/trips/new', icon: '✈️', label: 'New Trip' },
@@ -19,7 +19,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: Colors.navy }}>
-      {/* ── Top bar ── */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 100,
         background: Colors.navyMid, borderBottom: `1px solid ${Colors.border}`,
@@ -28,13 +27,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         boxShadow: `0 2px 10px ${Colors.shadow}`,
       }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <img src={LOGO} alt="PetRoamID" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} />
+          <img src={logoUrl} alt="PetRoamID" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} />
           <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#2A9D8F' }}>
             PetRoamID
           </span>
         </NavLink>
 
-        {/* Desktop nav */}
         <nav className="desktop-nav" style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           {NAV.map(n => (
             <NavLink key={n.to} to={n.to} end={n.to === '/'} style={({ isActive }) => ({
@@ -48,7 +46,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        {/* Profile avatar */}
         <div style={{ position: 'relative' }}>
           <button onClick={() => setMenuOpen(o => !o)} style={{
             width: 38, height: 38, borderRadius: '50%', fontSize: 20,
@@ -57,7 +54,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           }}>
             {profile?.avatarEmoji ?? '👤'}
           </button>
-
           {menuOpen && (
             <div style={{
               position: 'absolute', right: 0, top: 46,
@@ -69,12 +65,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <div style={{ fontWeight: 700, fontSize: 14, color: Colors.cream }}>
                   {profile?.avatarEmoji} {profile?.displayName}
                 </div>
-                <div style={{ fontSize: 11, color: Colors.creammid, marginTop: 2 }}>
-                  📱 Stored on this device
-                </div>
+                <div style={{ fontSize: 11, color: Colors.creammid, marginTop: 2 }}>📱 Stored on this device</div>
               </div>
-
-              {/* Other profiles */}
               {profiles.filter(p => p.id !== profile?.id).map(p => (
                 <MenuBtn key={p.id} onClick={() => { switchProfile(p.id); setMenuOpen(false); }}>
                   {p.avatarEmoji} Switch to {p.displayName}
@@ -83,7 +75,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               {profiles.filter(p => p.id !== profile?.id).length > 0 && (
                 <div style={{ borderTop: `1px solid ${Colors.borderLight}`, margin: '4px 0' }} />
               )}
-
               <MenuBtn onClick={() => { navigate('/settings'); setMenuOpen(false); }}>⚙️  Settings &amp; Export</MenuBtn>
               <MenuBtn onClick={() => { logout(); navigate('/profile'); setMenuOpen(false); }} danger>
                 🔀  Switch Profile
@@ -97,7 +88,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Mobile bottom nav */}
       <nav className="mobile-nav" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: Colors.navyMid, borderTop: `1px solid ${Colors.border}`,

@@ -1,3 +1,4 @@
+import logoUrl from '../assets/logo.jpg';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfileStore } from '../store/profileStore';
@@ -71,7 +72,7 @@ export default function DashboardPage() {
 
       {pets.length === 0 && trips.length === 0 && (
         <div style={{ textAlign: 'center', padding: '48px 24px', background: Colors.navyMid, borderRadius: 20, border: `2px dashed ${Colors.border}` }}>
-          <img src={`${import.meta.env.BASE_URL}logo.jpg`} alt="" style={{ width: 80, height: 80, borderRadius: 18, objectFit: 'cover', marginBottom: 16, display: 'block', margin: '0 auto 16px' }} />
+          <img src={logoUrl} alt="" style={{ width: 80, height: 80, borderRadius: 18, objectFit: 'cover', marginBottom: 16, display: 'block', margin: '0 auto 16px' }} />
           <h2 style={{ fontSize: 22, fontFamily: "'Playfair Display', Georgia, serif", marginBottom: 8 }}>Ready to Explore?</h2>
           <p style={{ color: Colors.creammid, marginBottom: 24, lineHeight: 1.6 }}>Add your pet to generate a personalised travel compliance checklist.</p>
           <button onClick={() => navigate('/pets/add')} style={{ background: '#2A9D8F', color: '#fff', border: 'none', padding: '14px 28px', borderRadius: 14, fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>🐾 Add My Pet</button>
