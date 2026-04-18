@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { useData } from '../store/AppContext';
 import { pullFromCloud, pushToCloud, downloadJSON, importJSON } from '../lib/syncService';
 import { Colors } from '../utils/theme';
+import type { Trip } from '../store/appStore';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -24,31 +25,24 @@ export default function SettingsPage() {
   }
 
   async function handlePull() {
-    setPulling(true);
-    auth.setSyncStatus('syncing');
+    setPulling(true); auth.setSyncStatus('syncing');
     const cloud = await pullFromCloud(uid);
     if (cloud) {
       data.importFromJSON(JSON.stringify({ pets: cloud.pets, trips: cloud.trips, purchases: cloud.purchases }));
       auth.setSyncStatus('synced');
-      flash('ok', `✅ Pulled ${cloud.pets.length} pets and ${cloud.trips.length} trips from cloud (saved ${new Date(cloud.updatedAt).toLocaleString()})`);
+      flash('ok', `✅ Pulled ${cloud.pets.length} pets and ${cloud.trips.length} trips (saved ${new Date(cloud.updatedAt).toLocaleString()})`);
     } else {
       auth.setSyncStatus('error', 'No cloud data found');
-      flash('err', '⚠️ No cloud data found. Data may not have been pushed yet.');
+      flash('err', '⚠️ No cloud data found yet.');
     }
     setPulling(false);
   }
 
   async function handlePush() {
-    setPushing(true);
-    auth.setSyncStatus('syncing');
+    setPushing(true); auth.setSyncStatus('syncing');
     const { error } = await pushToCloud(uid, { pets: data.pets, trips: data.trips, purchases: data.purchases });
-    if (error) {
-      auth.setSyncStatus('error', error);
-      flash('err', '❌ Push failed: ' + error);
-    } else {
-      auth.setSyncStatus('synced');
-      flash('ok', `✅ Pushed ${data.pets.length} pets and ${data.trips.length} trips to cloud.`);
-    }
+    if (error) { auth.setSyncStatus('error', error); flash('err', '❌ Push failed: ' + error); }
+    else       { auth.setSyncStatus('synced'); flash('ok', `✅ Pushed ${data.pets.length} pets and ${data.trips.length} trips to cloud.`); }
     setPushing(false);
   }
 
@@ -78,11 +72,9 @@ export default function SettingsPage() {
         <h1 style={{ fontSize: 24, fontFamily: "'Playfair Display', Georgia, serif" }}>Settings</h1>
       </div>
 
-      {/* Messages */}
       {msg && <div style={{ background: Colors.greenBg, color: Colors.green, padding: '12px 16px', borderRadius: 12, marginBottom: 14, fontSize: 14 }}>{msg}</div>}
       {err && <div style={{ background: Colors.redBg,  color: Colors.red,   padding: '12px 16px', borderRadius: 12, marginBottom: 14, fontSize: 14 }}>{err}</div>}
 
-      {/* Account */}
       <Section title="👤 Account">
         <Row label="Signed in as" value={auth.displayName()} />
         <Row label="Sync status"  value={
@@ -98,10 +90,9 @@ export default function SettingsPage() {
         }}>🚪 Sign Out</button>
       </Section>
 
-      {/* Cloud sync */}
       <Section title="☁️ Supabase Cloud Sync">
         <p style={{ fontSize: 13, color: Colors.creammid, lineHeight: 1.6, marginBottom: 16 }}>
-          Your data syncs automatically whenever you make changes. Use the buttons below to force a manual sync or resolve conflicts.
+          Your data syncs automatically whenever you make changes. Use the buttons below to force a manual sync.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           <button onClick={handlePull} disabled={pulling} style={syncBtn('#2A9D8F', 'rgba(42,157,143,0.12)')}>
@@ -112,52 +103,39 @@ export default function SettingsPage() {
           </button>
         </div>
         <div style={{ padding: '12px 14px', background: Colors.navyLight, borderRadius: 10, fontSize: 12, color: Colors.creammid, lineHeight: 1.6 }}>
-          📱 <strong>Android / iOS →</strong> Sign in with the same email. Data syncs automatically on login.<br/>
-          🌐 <strong>Multiple browsers →</strong> Same account = same data everywhere, always up to date.
+          📱 <strong>Android / iOS →</strong> Sign in with the same email. Data syncs automatically on login.<br />
+          🌐 <strong>Multiple browsers →</strong> Same account = same data everywhere.
         </div>
       </Section>
 
-      {/* Offline backup */}
       <Section title="💾 Offline Backup">
         <p style={{ fontSize: 13, color: Colors.creammid, marginBottom: 12, lineHeight: 1.5 }}>
           Export a <code>.petroamid</code> JSON file as an offline backup or to transfer data manually.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <button onClick={handleExportJSON} style={syncBtn(Colors.teal, Colors.tealGlow)}>
-            ⬇️  Export JSON
-          </button>
-          <button onClick={handleImportJSON} style={syncBtn(Colors.orange, Colors.orangeBg)}>
-            ⬆️  Import JSON
-          </button>
+          <button onClick={handleExportJSON} style={syncBtn(Colors.teal, Colors.tealGlow)}>⬇️  Export JSON</button>
+          <button onClick={handleImportJSON} style={syncBtn(Colors.orange, Colors.orangeBg)}>⬆️  Import JSON</button>
         </div>
       </Section>
 
-      {/* Data summary */}
       <Section title="📊 Your Data">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 14 }}>
-          <Stat label="Pets"       value={data.pets.length} />
-          <Stat label="Trips"      value={data.trips.length} />
-          <Stat label="Unlocked"   value={data.trips.filter(t => t.isPremium).length} />
+          <Stat label="Pets"     value={data.pets.length} />
+          <Stat label="Trips"    value={data.trips.length} />
+          <Stat label="Unlocked" value={data.trips.filter((t: Trip) => t.isPremium).length} />
         </div>
         <button onClick={() => setClearing(true)} style={{
-          padding: '8px 16px', borderRadius: 10,
-          background: Colors.redBg, border: `1px solid ${Colors.red}33`,
-          color: Colors.red, fontWeight: 600, cursor: 'pointer', fontSize: 13,
+          padding: '8px 16px', borderRadius: 10, background: Colors.redBg,
+          border: `1px solid ${Colors.red}33`, color: Colors.red, fontWeight: 600, cursor: 'pointer', fontSize: 13,
         }}>🗑 Clear Local Data</button>
         {clearing && (
           <div style={{ marginTop: 12, padding: '12px 14px', background: Colors.redBg, borderRadius: 10 }}>
             <p style={{ fontSize: 13, color: Colors.red, marginBottom: 10 }}>
-              This clears local data only. Your cloud backup remains safe. Continue?
+              This clears local data only. Your cloud backup remains safe.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setClearing(false)} style={{
-                padding: '7px 14px', borderRadius: 8, background: Colors.navyMid,
-                border: `1px solid ${Colors.border}`, cursor: 'pointer', fontSize: 13,
-              }}>Cancel</button>
-              <button onClick={() => { data.clearAll(); setClearing(false); flash('ok', '✅ Local data cleared. Pull from cloud to restore.'); }} style={{
-                padding: '7px 14px', borderRadius: 8, background: Colors.red,
-                border: 'none', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13,
-              }}>Clear Local</button>
+              <button onClick={() => setClearing(false)} style={{ padding: '7px 14px', borderRadius: 8, background: Colors.navyMid, border: `1px solid ${Colors.border}`, cursor: 'pointer', fontSize: 13 }}>Cancel</button>
+              <button onClick={() => { data.clearAll(); setClearing(false); flash('ok', '✅ Local data cleared. Pull from cloud to restore.'); }} style={{ padding: '7px 14px', borderRadius: 8, background: Colors.red, border: 'none', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>Clear Local</button>
             </div>
           </div>
         )}
@@ -171,11 +149,7 @@ export default function SettingsPage() {
 }
 
 function syncBtn(color: string, bg: string): React.CSSProperties {
-  return {
-    padding: '13px 10px', borderRadius: 12,
-    background: bg, border: `1px solid ${color}44`,
-    color: color, fontWeight: 700, cursor: 'pointer', fontSize: 13,
-  };
+  return { padding: '13px 10px', borderRadius: 12, background: bg, border: `1px solid ${color}44`, color, fontWeight: 700, cursor: 'pointer', fontSize: 13 };
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

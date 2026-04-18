@@ -5,6 +5,7 @@ import { useData } from '../store/AppContext';
 import { Colors } from '../utils/theme';
 import { calcReadinessScore } from '../utils/timelineCalculator';
 import { COUNTRIES } from '../data/travelRequirements';
+import type { Pet, Trip } from '../store/appStore';
 import { format, differenceInDays } from 'date-fns';
 
 export default function DashboardPage() {
@@ -13,13 +14,12 @@ export default function DashboardPage() {
   const data     = useData();
   const { pets, trips } = data;
 
-  const activeTrips = trips.filter(t => differenceInDays(new Date(t.travelDate), new Date()) >= 0);
-  const pastTrips   = trips.filter(t => differenceInDays(new Date(t.travelDate), new Date()) < 0);
+  const activeTrips = trips.filter((t: Trip) => differenceInDays(new Date(t.travelDate), new Date()) >= 0);
+  const pastTrips   = trips.filter((t: Trip) => differenceInDays(new Date(t.travelDate), new Date()) < 0);
   const firstName   = auth.displayName().split(' ')[0];
 
   return (
     <div>
-      {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 28, fontFamily: "'Playfair Display', Georgia, serif", color: Colors.cream, marginBottom: 4 }}>
           {getGreeting()}, {firstName} 👋
@@ -31,19 +31,15 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Quick actions */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
-        <QuickCard icon="🐾" title="Add a Pet"   desc="Dogs & cats" color={Colors.teal}
-          onClick={() => navigate('/pets/add')} />
-        <QuickCard icon="✈️" title="Plan a Trip" desc="Get checklist" color={Colors.gold}
-          onClick={() => pets.length > 0 ? navigate('/trips/new') : navigate('/pets/add')} />
+        <QuickCard icon="🐾" title="Add a Pet"   desc="Dogs & cats"   color={Colors.teal} onClick={() => navigate('/pets/add')} />
+        <QuickCard icon="✈️" title="Plan a Trip" desc="Get checklist" color={Colors.gold} onClick={() => pets.length > 0 ? navigate('/trips/new') : navigate('/pets/add')} />
       </div>
 
-      {/* Active trips */}
       {activeTrips.length > 0 && (
         <Section title="Upcoming Trips">
-          {activeTrips.map(trip => {
-            const pet      = pets.find(p => p.id === trip.petId);
+          {activeTrips.map((trip: Trip) => {
+            const pet      = pets.find((p: Pet) => p.id === trip.petId);
             const score    = calcReadinessScore(trip.checklist ?? []);
             const daysLeft = differenceInDays(new Date(trip.travelDate), new Date());
             const country  = COUNTRIES.find(c => c.code === trip.destination);
@@ -56,11 +52,10 @@ export default function DashboardPage() {
         </Section>
       )}
 
-      {/* Pets overview */}
       {pets.length > 0 && (
         <Section title="Your Pets" action={{ label: 'View All', onClick: () => navigate('/pets') }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
-            {pets.map(pet => (
+            {pets.map((pet: Pet) => (
               <div key={pet.id} onClick={() => navigate('/pets')} style={{
                 background: Colors.navyMid, border: `1px solid ${Colors.border}`,
                 borderRadius: 14, padding: 16, textAlign: 'center', cursor: 'pointer',
@@ -74,17 +69,12 @@ export default function DashboardPage() {
         </Section>
       )}
 
-      {/* Empty state */}
       {pets.length === 0 && trips.length === 0 && (
-        <div style={{
-          textAlign: 'center', padding: '48px 24px',
-          background: Colors.navyMid, borderRadius: 20,
-          border: `2px dashed ${Colors.border}`,
-        }}>
+        <div style={{ textAlign: 'center', padding: '48px 24px', background: Colors.navyMid, borderRadius: 20, border: `2px dashed ${Colors.border}` }}>
           <img src="./logo.jpg" alt="" style={{ width: 80, height: 80, borderRadius: 18, objectFit: 'cover', marginBottom: 16 }} />
           <h2 style={{ fontSize: 22, fontFamily: "'Playfair Display', Georgia, serif", marginBottom: 8 }}>Ready to Explore?</h2>
           <p style={{ color: Colors.creammid, marginBottom: 24, lineHeight: 1.6 }}>
-            Add your pet's profile to generate a personalised travel compliance checklist for any country.
+            Add your pet's profile to generate a personalised travel compliance checklist.
           </p>
           <button onClick={() => navigate('/pets/add')} style={{
             background: '#2A9D8F', color: '#fff', border: 'none',
@@ -93,11 +83,10 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Past trips */}
       {pastTrips.length > 0 && (
         <Section title="Past Trips">
-          {pastTrips.slice(0, 3).map(trip => {
-            const pet     = pets.find(p => p.id === trip.petId);
+          {pastTrips.slice(0, 3).map((trip: Trip) => {
+            const pet     = pets.find((p: Pet) => p.id === trip.petId);
             const country = COUNTRIES.find(c => c.code === trip.destination);
             return (
               <div key={trip.id} onClick={() => navigate(`/trips/${trip.id}`)} style={{
@@ -150,13 +139,14 @@ function QuickCard({ icon, title, desc, color, onClick }: {
     }}>
       <div style={{ fontSize: 28 }}>{icon}</div>
       <div style={{ fontWeight: 700, fontSize: 15, color: Colors.cream }}>{title}</div>
-      <div style={{ fontSize: 12, color: Colors.creammid }}>{desc}</div>
+      <div style={{ fontSize: 12, color }}>  {desc}</div>
     </button>
   );
 }
 
 function TripCard({ pet, trip, score, daysLeft, countryName, onClick }: {
-  pet: any; trip: any; score: number; daysLeft: number; countryName: string; onClick: () => void;
+  pet: Pet | undefined; trip: Trip; score: number; daysLeft: number;
+  countryName: string; onClick: () => void;
 }) {
   const barColor = score >= 80 ? Colors.green : score >= 50 ? Colors.yellow : Colors.red;
   return (
@@ -184,7 +174,7 @@ function TripCard({ pet, trip, score, daysLeft, countryName, onClick }: {
         <div style={{ width: `${score}%`, height: '100%', background: barColor, borderRadius: 6, transition: 'width .4s' }} />
       </div>
       <div style={{ marginTop: 8, fontSize: 12, color: Colors.creammid }}>
-        {trip.checklist?.filter((c: any) => c.completed).length ?? 0} / {trip.checklist?.length ?? 0} items complete
+        {trip.checklist?.filter(c => c.completed).length ?? 0} / {trip.checklist?.length ?? 0} items complete
         {!trip.isPremium && <span style={{ marginLeft: 8, color: Colors.gold }}>🔒 Free tier</span>}
       </div>
     </div>
