@@ -1,0 +1,199 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import { useData } from '../store/AppContext';
+import { Colors } from '../utils/theme';
+import { calcReadinessScore } from '../utils/timelineCalculator';
+import { COUNTRIES } from '../data/travelRequirements';
+import { format, differenceInDays } from 'date-fns';
+
+export default function DashboardPage() {
+  const navigate = useNavigate();
+  const auth     = useAuthStore();
+  const data     = useData();
+  const { pets, trips } = data;
+
+  const activeTrips = trips.filter(t => differenceInDays(new Date(t.travelDate), new Date()) >= 0);
+  const pastTrips   = trips.filter(t => differenceInDays(new Date(t.travelDate), new Date()) < 0);
+  const firstName   = auth.displayName().split(' ')[0];
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontSize: 28, fontFamily: "'Playfair Display', Georgia, serif", color: Colors.cream, marginBottom: 4 }}>
+          {getGreeting()}, {firstName} 👋
+        </h1>
+        <p style={{ color: Colors.creammid, fontSize: 15 }}>
+          {pets.length === 0
+            ? 'Add your first pet to get started'
+            : `${pets.length} pet${pets.length > 1 ? 's' : ''} · ${activeTrips.length} upcoming trip${activeTrips.length !== 1 ? 's' : ''}`}
+        </p>
+      </div>
+
+      {/* Quick actions */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
+        <QuickCard icon="🐾" title="Add a Pet"   desc="Dogs & cats" color={Colors.teal}
+          onClick={() => navigate('/pets/add')} />
+        <QuickCard icon="✈️" title="Plan a Trip" desc="Get checklist" color={Colors.gold}
+          onClick={() => pets.length > 0 ? navigate('/trips/new') : navigate('/pets/add')} />
+      </div>
+
+      {/* Active trips */}
+      {activeTrips.length > 0 && (
+        <Section title="Upcoming Trips">
+          {activeTrips.map(trip => {
+            const pet      = pets.find(p => p.id === trip.petId);
+            const score    = calcReadinessScore(trip.checklist ?? []);
+            const daysLeft = differenceInDays(new Date(trip.travelDate), new Date());
+            const country  = COUNTRIES.find(c => c.code === trip.destination);
+            return (
+              <TripCard key={trip.id} pet={pet} trip={trip} score={score} daysLeft={daysLeft}
+                countryName={country?.name ?? trip.destination}
+                onClick={() => navigate(`/trips/${trip.id}`)} />
+            );
+          })}
+        </Section>
+      )}
+
+      {/* Pets overview */}
+      {pets.length > 0 && (
+        <Section title="Your Pets" action={{ label: 'View All', onClick: () => navigate('/pets') }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+            {pets.map(pet => (
+              <div key={pet.id} onClick={() => navigate('/pets')} style={{
+                background: Colors.navyMid, border: `1px solid ${Colors.border}`,
+                borderRadius: 14, padding: 16, textAlign: 'center', cursor: 'pointer',
+              }}>
+                <div style={{ fontSize: 36, marginBottom: 6 }}>{pet.avatarEmoji ?? (pet.species === 'cat' ? '🐱' : '🐶')}</div>
+                <div style={{ fontWeight: 600, fontSize: 14, color: Colors.cream }}>{pet.name}</div>
+                <div style={{ fontSize: 12, color: Colors.creammid, textTransform: 'capitalize' }}>{pet.species}</div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Empty state */}
+      {pets.length === 0 && trips.length === 0 && (
+        <div style={{
+          textAlign: 'center', padding: '48px 24px',
+          background: Colors.navyMid, borderRadius: 20,
+          border: `2px dashed ${Colors.border}`,
+        }}>
+          <img src="./logo.jpg" alt="" style={{ width: 80, height: 80, borderRadius: 18, objectFit: 'cover', marginBottom: 16 }} />
+          <h2 style={{ fontSize: 22, fontFamily: "'Playfair Display', Georgia, serif", marginBottom: 8 }}>Ready to Explore?</h2>
+          <p style={{ color: Colors.creammid, marginBottom: 24, lineHeight: 1.6 }}>
+            Add your pet's profile to generate a personalised travel compliance checklist for any country.
+          </p>
+          <button onClick={() => navigate('/pets/add')} style={{
+            background: '#2A9D8F', color: '#fff', border: 'none',
+            padding: '14px 28px', borderRadius: 14, fontWeight: 700, fontSize: 16, cursor: 'pointer',
+          }}>🐾 Add My Pet</button>
+        </div>
+      )}
+
+      {/* Past trips */}
+      {pastTrips.length > 0 && (
+        <Section title="Past Trips">
+          {pastTrips.slice(0, 3).map(trip => {
+            const pet     = pets.find(p => p.id === trip.petId);
+            const country = COUNTRIES.find(c => c.code === trip.destination);
+            return (
+              <div key={trip.id} onClick={() => navigate(`/trips/${trip.id}`)} style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+                background: Colors.navyMid, borderRadius: 12, marginBottom: 8,
+                border: `1px solid ${Colors.border}`, cursor: 'pointer', opacity: 0.7,
+              }}>
+                <span style={{ fontSize: 24 }}>{pet?.avatarEmoji ?? '🐾'}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{pet?.name} → {country?.name ?? trip.destination}</div>
+                  <div style={{ fontSize: 12, color: Colors.creammid }}>{format(new Date(trip.travelDate), 'MMM d, yyyy')}</div>
+                </div>
+                <span style={{ fontSize: 12, color: Colors.creammid }}>›</span>
+              </div>
+            );
+          })}
+        </Section>
+      )}
+    </div>
+  );
+}
+
+function Section({ title, children, action }: {
+  title: string; children: React.ReactNode;
+  action?: { label: string; onClick: () => void };
+}) {
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: Colors.cream }}>{title}</h2>
+        {action && (
+          <button onClick={action.onClick} style={{ color: '#2A9D8F', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
+            {action.label} →
+          </button>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function QuickCard({ icon, title, desc, color, onClick }: {
+  icon: string; title: string; desc: string; color: string; onClick: () => void;
+}) {
+  return (
+    <button onClick={onClick} style={{
+      background: Colors.navyMid, border: `1px solid ${Colors.border}`,
+      borderRadius: 16, padding: '18px 16px', textAlign: 'left', cursor: 'pointer',
+      display: 'flex', flexDirection: 'column', gap: 4, boxShadow: `0 2px 8px ${Colors.shadow}`,
+    }}>
+      <div style={{ fontSize: 28 }}>{icon}</div>
+      <div style={{ fontWeight: 700, fontSize: 15, color: Colors.cream }}>{title}</div>
+      <div style={{ fontSize: 12, color: Colors.creammid }}>{desc}</div>
+    </button>
+  );
+}
+
+function TripCard({ pet, trip, score, daysLeft, countryName, onClick }: {
+  pet: any; trip: any; score: number; daysLeft: number; countryName: string; onClick: () => void;
+}) {
+  const barColor = score >= 80 ? Colors.green : score >= 50 ? Colors.yellow : Colors.red;
+  return (
+    <div onClick={onClick} style={{
+      background: Colors.navyMid, border: `1px solid ${Colors.border}`,
+      borderRadius: 16, padding: 20, marginBottom: 12, cursor: 'pointer',
+      boxShadow: `0 2px 12px ${Colors.shadow}`,
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 32 }}>{pet?.avatarEmoji ?? (pet?.species === 'cat' ? '🐱' : '🐶')}</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 15, color: Colors.cream }}>{pet?.name ?? 'Pet'} → {countryName}</div>
+            <div style={{ fontSize: 12, color: Colors.creammid }}>
+              {format(new Date(trip.travelDate), 'MMM d, yyyy')} · {daysLeft === 0 ? 'Today!' : `${daysLeft}d away`}
+            </div>
+          </div>
+        </div>
+        <div style={{
+          background: score >= 80 ? Colors.greenBg : score >= 50 ? Colors.yellowBg : Colors.redBg,
+          color: barColor, borderRadius: 20, padding: '4px 10px', fontSize: 13, fontWeight: 700,
+        }}>{score}%</div>
+      </div>
+      <div style={{ background: Colors.navyLight, borderRadius: 6, height: 6, overflow: 'hidden' }}>
+        <div style={{ width: `${score}%`, height: '100%', background: barColor, borderRadius: 6, transition: 'width .4s' }} />
+      </div>
+      <div style={{ marginTop: 8, fontSize: 12, color: Colors.creammid }}>
+        {trip.checklist?.filter((c: any) => c.completed).length ?? 0} / {trip.checklist?.length ?? 0} items complete
+        {!trip.isPremium && <span style={{ marginLeft: 8, color: Colors.gold }}>🔒 Free tier</span>}
+      </div>
+    </div>
+  );
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 18) return 'Good afternoon';
+  return 'Good evening';
+}
