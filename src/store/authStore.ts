@@ -79,5 +79,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user: null, session: null, mode: 'unauthenticated', syncStatus: 'idle' });
   },
 
-  setSyncStatus: (syncStatus, syncError = null) => set({ syncStatus, syncError }),
+  setSyncStatus: (syncStatus, syncError?) => set({ syncStatus, syncError: syncError ?? null }),
 }));
