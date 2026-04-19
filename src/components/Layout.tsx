@@ -26,9 +26,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         boxShadow: `0 2px 10px ${Colors.shadow}`,
       }}>
-        <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+        <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
           <img src={logoUrl} alt="PetRoamID" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} />
-          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#2A9D8F' }}>
+          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 18, fontWeight: 700, color: '#2A9D8F', whiteSpace: 'nowrap' }}>
             PetRoamID
           </span>
         </NavLink>
