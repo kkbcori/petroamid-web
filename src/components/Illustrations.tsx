@@ -119,7 +119,7 @@ export function TravelBanner() {
   return <PageBanner title="Plan a Trip ✈️" subtitle="Generate your compliance checklist" color={TRAVEL_COLOR} imgSrc={sceneAirport} titleColor="#1a2952" />;
 }
 export function ChecklistBanner({ title, subtitle }: { title: string; subtitle: string }) {
-  return <PageBanner title={title} subtitle={subtitle} color={CHECKLIST_COLOR} imgSrc={scenePlane}    titleColor="#3b2710" />;
+  return <PageBanner title={title} subtitle={subtitle} color={CHECKLIST_COLOR} imgSrc={sceneHug}    titleColor="#3b2710" />;
 }
 export function SettingsBanner() {
   return <PageBanner title="Settings ⚙️" subtitle="Profile, backup & data" color={SETTINGS_COLOR} imgSrc={sceneBackpack} titleColor="#5c2800" />;
