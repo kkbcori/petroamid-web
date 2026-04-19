@@ -48,7 +48,6 @@ export default function ProfilePage() {
           objectFit:       'contain',
           objectPosition:  'bottom right',
           opacity:          0.90,
-          backgroundColor:  BG,   // ← fills transparent PNG areas with page colour
           userSelect:      'none',
           pointerEvents:   'none',
           zIndex:           0,

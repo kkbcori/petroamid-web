@@ -1,3 +1,13 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PetRoamID – Page Banners
+//
+// Images have black backgrounds (tool saved black instead of transparent).
+// Fix: mix-blend-mode "screen" on a LIGHT background.
+//   Screen blend formula: output = 1-(1-src)(1-dst)
+//   → black src (0,0,0) + any light dst = dst  (black disappears ✅)
+//   → coloured src + light dst = bright colour  (illustration stays ✅)
+// This is web-only. For React Native: use proper transparent PNG + ImageBackground.
+// ─────────────────────────────────────────────────────────────────────────────
 import React from 'react';
 
 import sceneAirport  from '../assets/scene-airport.png';
@@ -15,64 +25,60 @@ export const CHECKLIST_COLOR = '#F5EEE6';
 export const SETTINGS_COLOR  = '#FFF0E0';
 
 interface BannerProps {
-  title:       string;
-  subtitle?:   string;
-  color:       string;
-  imgSrc:      string;
-  imgSide?:    'left' | 'right';
-  imgHeight?:  number;
-  titleColor?: string;
+  title:      string;
+  subtitle?:  string;
+  color:      string;
+  imgSrc:     string;
+  imgSide?:   'left' | 'right';
+  imgHeight?: number;
+  titleColor?:string;
 }
 
 export function PageBanner({
   title, subtitle, color, imgSrc,
-  imgSide   = 'right',
-  imgHeight = 210,
+  imgSide    = 'right',
+  imgHeight  = 210,
   titleColor = '#1a2e2b',
 }: BannerProps) {
   return (
     <div style={{
       position:        'relative',
       overflow:        'hidden',
-      backgroundColor:  color,        // fills the whole banner
+      backgroundColor:  color,          // solid page colour fills the banner
       borderRadius:    '0 0 28px 28px',
       marginBottom:     22,
       marginLeft:      -16,
       marginRight:     -16,
       height:           imgHeight,
     }}>
-      {/* ── Illustration ──────────────────────────────────────────────────────
-          backgroundColor on the <img> itself = the KEY fix.
-          Transparent PNG pixels show this colour → zero checkerboard.
-          Maps directly to RN: <Image style={{ backgroundColor: color }} />
+      {/* ── Image with screen blend ──────────────────────────────────────────
+          Black pixels from the image → disappear, showing backgroundColor.
+          Illustration colours → remain vibrant against the light background.
       ── */}
       <img
         src={imgSrc}
         alt=""
         aria-hidden="true"
         style={{
-          position:        'absolute',
-          bottom:           0,
-          [imgSide]:       -8,
-          height:          '96%',
-          maxWidth:        '64%',
-          objectFit:       'contain',
-          objectPosition:  'bottom',
-          opacity:          0.90,
-          // ↓ This fills transparent PNG areas with the banner colour
-          backgroundColor:  color,
-          userSelect:      'none',
-          pointerEvents:   'none',
+          position:       'absolute',
+          bottom:          0,
+          [imgSide]:      -8,
+          height:         '96%',
+          maxWidth:       '64%',
+          objectFit:      'contain',
+          objectPosition: 'bottom',
+          userSelect:     'none',
+          pointerEvents:  'none',
         }}
       />
 
-      {/* Gradient — blends image into bg on the image side */}
+      {/* Gradient — text side stays readable */}
       <div style={{
         position:      'absolute',
         inset:          0,
         background:     imgSide === 'right'
-          ? `linear-gradient(to right, ${color} 30%, ${color}cc 48%, ${color}66 65%, transparent 85%)`
-          : `linear-gradient(to left,  ${color} 30%, ${color}cc 48%, ${color}66 65%, transparent 85%)`,
+          ? `linear-gradient(to right, ${color} 28%, ${color}cc 46%, ${color}66 62%, transparent 82%)`
+          : `linear-gradient(to left,  ${color} 28%, ${color}cc 46%, ${color}66 62%, transparent 82%)`,
         pointerEvents: 'none',
       }} />
 
