@@ -110,7 +110,7 @@ export function PageBanner({
 }
 
 export function DashboardBanner({ title, subtitle }: { title: string; subtitle: string }) {
-  return <PageBanner title={title} subtitle={subtitle} color={DASHBOARD_COLOR} imgSrc={sceneHug}      titleColor="#3b1a0a" />;
+  return <PageBanner title={title} subtitle={subtitle} color={DASHBOARD_COLOR} imgSrc={scenePlane}      titleColor="#3b1a0a" />;
 }
 export function PetsBanner() {
   return <PageBanner title="My Pets 🐾" subtitle="Manage your travel companions" color={PETS_COLOR} imgSrc={sceneCats}     titleColor="#5c2d00" />;
