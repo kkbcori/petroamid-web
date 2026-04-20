@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { Colors } from '../utils/theme';
-import { queryOverpass, parseOsmPlaces, geocodePostcode, type OsmPlace } from '../utils/overpassClient';
+import { searchNearbyPlaces, geocodePostcode, type OsmPlace } from '../utils/overpassClient';
 
 const BG = '#E8F4F0';
 
 const FILTERS = [
-  { label: '🏨 Hotels',  filter: '"tourism"~"hotel|motel"'      },
-  { label: '🏡 B&B',     filter: '"tourism"~"guest_house|hostel"' },
-  { label: '⛺ Camping', filter: '"tourism"="camp_site"'          },
-  { label: '🏠 Rentals', filter: '"tourism"="apartment"'          },
+  { label: '🏨 Hotels',  term: 'hotel'             },
+  { label: '🏡 B&B',     term: 'bed and breakfast'  },
+  { label: '⛺ Camping', term: 'campsite camping'    },
+  { label: '🏠 Rentals', term: 'holiday apartment'   },
 ];
 
-function PlaceCard({ place, rank, accent }: { place: OsmPlace; rank: number; accent: string }) {
-  const medals = ['🥇','🥈','🥉'];
+export function PlaceCard({ place, rank, accent }: { place: OsmPlace; rank: number; accent: string }) {
+  const medals  = ['🥇','🥈','🥉'];
   const googleUrl = `https://www.google.com/maps/search/${encodeURIComponent(place.name + ' ' + place.address)}`;
   return (
-    <div style={{ background: Colors.navyMid, border: `1px solid ${Colors.border}`, borderRadius: 14, borderLeft: `4px solid ${accent}`, boxShadow: `0 2px 8px ${Colors.shadow}`, overflow: 'hidden' }}>
+    <div style={{ background: Colors.navyMid, border: `1px solid ${Colors.border}`, borderRadius: 14, borderLeft: `4px solid ${accent}`, boxShadow: `0 2px 8px ${Colors.shadow}`, marginBottom: 10 }}>
       <div style={{ padding: '12px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <span style={{ fontSize: 22, flexShrink: 0 }}>{medals[rank-1]}</span>
@@ -28,45 +28,45 @@ function PlaceCard({ place, rank, accent }: { place: OsmPlace; rank: number; acc
                   📏 {place.distKm < 1 ? `${Math.round(place.distKm*1000)}m` : `${place.distKm.toFixed(1)}km`}
                 </span>
               )}
-              {place.stars && <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: Colors.goldLight, color: Colors.gold, fontWeight: 600 }}>⭐ {place.stars} stars</span>}
-              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'rgba(42,157,143,0.1)', color: '#2A9D8F', fontWeight: 600 }}>🐾 Pet-friendly</span>
             </div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
           <a href={googleUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 10, textAlign: 'center', textDecoration: 'none', background: accent, color: '#fff', fontSize: 12, fontWeight: 700 }}>🗺️ View on Map</a>
-          {place.website && <a href={place.website.startsWith('http') ? place.website : `https://${place.website}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 10, textAlign: 'center', textDecoration: 'none', background: Colors.navyLight, color: Colors.cream, border: `1px solid ${Colors.border}`, fontSize: 12, fontWeight: 700 }}>🌐 Website</a>}
-          {place.phone && <a href={`tel:${place.phone}`} style={{ flex: 1, padding: '8px', borderRadius: 10, textAlign: 'center', textDecoration: 'none', background: Colors.navyLight, color: Colors.cream, border: `1px solid ${Colors.border}`, fontSize: 12, fontWeight: 700 }}>📞 Call</a>}
+          {place.website && (
+            <a href={place.website.startsWith('http') ? place.website : `https://${place.website}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 10, textAlign: 'center', textDecoration: 'none', background: Colors.navyLight, color: Colors.cream, border: `1px solid ${Colors.border}`, fontSize: 12, fontWeight: 700 }}>🌐 Website</a>
+          )}
+          {place.phone && (
+            <a href={`tel:${place.phone}`} style={{ flex: 1, padding: '8px', borderRadius: 10, textAlign: 'center', textDecoration: 'none', background: Colors.navyLight, color: Colors.cream, border: `1px solid ${Colors.border}`, fontSize: 12, fontWeight: 700 }}>📞 Call</a>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-export { PlaceCard };
-
 export default function StaysPage() {
-  const [mode,    setMode]    = useState<'location'|'postcode'>('location');
-  const [postcode, setPostcode] = useState('');
+  const [mode,      setMode]      = useState<'location'|'postcode'>('location');
+  const [postcode,  setPostcode]  = useState('');
   const [filterIdx, setFilterIdx] = useState(0);
-  const [coords,  setCoords]  = useState<{lat:number;lon:number}|null>(null);
-  const [label,   setLabel]   = useState('');
-  const [places,  setPlaces]  = useState<OsmPlace[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [coords,    setCoords]    = useState<{lat:number;lon:number}|null>(null);
+  const [label,     setLabel]     = useState('');
+  const [places,    setPlaces]    = useState<OsmPlace[]>([]);
+  const [loading,   setLoading]   = useState(false);
   const [placesLoading, setPlacesLoading] = useState(false);
-  const [error,   setError]   = useState('');
-  const [mapReady, setMapReady] = useState(false);
+  const [error,     setError]     = useState('');
+  const [mapReady,  setMapReady]  = useState(false);
 
   async function search(lat: number, lon: number, lbl: string, fi = filterIdx) {
     setCoords({lat, lon}); setLabel(lbl); setMapReady(true);
     setPlacesLoading(true); setPlaces([]); setError('');
     try {
-      const f = FILTERS[fi].filter;
-      const q = `[out:json][timeout:25];(node[${f}]["name"](around:5000,${lat},${lon});way[${f}]["name"](around:5000,${lat},${lon}););out body center 20;`;
-      const data = await queryOverpass(q, `stays:${fi}:${lat.toFixed(3)},${lon.toFixed(3)}`);
-      setPlaces(parseOsmPlaces(data.elements, lat, lon));
-    } catch (e) {
-      setError('Could not load nearby places. Try the map below for results.');
+      const term   = FILTERS[fi].term + ' pet friendly';
+      const places = await searchNearbyPlaces(lat, lon, term, `stays:${fi}:${lat.toFixed(3)},${lon.toFixed(3)}`);
+      setPlaces(places);
+      if (places.length === 0) setError('No results found nearby. The map below may show more options.');
+    } catch {
+      setError('Search failed. Please try again or use the map below.');
     } finally { setPlacesLoading(false); }
   }
 
@@ -82,13 +82,16 @@ export default function StaysPage() {
   async function handlePostcode() {
     if (!postcode.trim()) return;
     setLoading(true); setError(''); setMapReady(false);
-    const c = await geocodePostcode(postcode.trim());
+    const result = await geocodePostcode(postcode.trim());
     setLoading(false);
-    if (!c) { setError('Postcode not found. Try a city name.'); return; }
-    search(c.lat, c.lon, postcode.trim());
+    if (!result) { setError('Postcode not found. Try a city name (e.g. "London" or "New York").'); return; }
+    search(result.lat, result.lon, result.displayName);
   }
 
-  const mapUrl = coords ? `https://maps.google.com/maps?q=${encodeURIComponent(FILTERS[filterIdx].label.replace(/[^\w\s]/g,'').trim() + ' ' + label)}&ll=${coords.lat},${coords.lon}&output=embed&z=13` : null;
+  // Use coordinates in map URL for accuracy — not raw postcode text
+  const mapUrl = coords
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(FILTERS[filterIdx].term + ' pet friendly')}&ll=${coords.lat},${coords.lon}&z=13&output=embed`
+    : null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '85vh' }}>
@@ -105,16 +108,20 @@ export default function StaysPage() {
             </button>
           ))}
         </div>
+
         {mode === 'location'
           ? <button onClick={handleUseLocation} disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: 12, border: 'none', background: loading ? Colors.border : 'linear-gradient(135deg,#2A9D8F,#1d7a6e)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer' }}>
               {loading ? '📡 Locating…' : '📍 Use My Current Location'}
             </button>
           : <div style={{ display: 'flex', gap: 8 }}>
-              <input value={postcode} onChange={e => setPostcode(e.target.value)} onKeyDown={e => e.key==='Enter' && handlePostcode()} placeholder="e.g. SW1A 1AA or New York" style={{ flex: 1, padding: '11px 13px', borderRadius: 10, border: `1px solid ${Colors.border}`, background: Colors.navyLight, fontSize: 14, color: Colors.cream }} onFocus={e=>(e.target.style.borderColor='#2A9D8F')} onBlur={e=>(e.target.style.borderColor=Colors.border)} />
+              <input value={postcode} onChange={e => setPostcode(e.target.value)} onKeyDown={e => e.key==='Enter' && handlePostcode()} placeholder="e.g. SW1A 1AA, London, New York" style={{ flex: 1, padding: '11px 13px', borderRadius: 10, border: `1px solid ${Colors.border}`, background: Colors.navyLight, fontSize: 14, color: Colors.cream }}
+                onFocus={e=>(e.target.style.borderColor='#2A9D8F')} onBlur={e=>(e.target.style.borderColor=Colors.border)} />
               <button onClick={handlePostcode} disabled={loading} style={{ padding: '11px 16px', borderRadius: 10, border: 'none', background: '#2A9D8F', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>{loading ? '…' : 'Search'}</button>
             </div>
         }
+
         {error && <div style={{ marginTop: 10, padding: '8px 12px', background: Colors.redBg, color: Colors.red, borderRadius: 8, fontSize: 13 }}>⚠️ {error}</div>}
+
         {mapReady && (
           <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
             {FILTERS.map((f, i) => (
@@ -124,12 +131,11 @@ export default function StaysPage() {
         )}
       </div>
 
-      {/* Top 3 list */}
+      {/* Top 3 */}
       {(placesLoading || places.length > 0) && (
         <div style={{ marginBottom: 16 }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: Colors.cream, marginBottom: 10 }}>📍 Nearest {FILTERS[filterIdx].label} near {label}</h2>
-          {placesLoading && [0,1,2].map(i => <div key={i} style={{ height: 100, borderRadius: 14, background: Colors.navyMid, border: `1px solid ${Colors.border}`, marginBottom: 10 }} />)}
-          {!placesLoading && places.length === 0 && <div style={{ padding: '12px 16px', background: Colors.navyMid, borderRadius: 12, fontSize: 13, color: Colors.creammid }}>No results in OpenStreetMap for this area. Check the map below.</div>}
+          {placesLoading && [0,1,2].map(i => <div key={i} style={{ height: 90, borderRadius: 14, background: Colors.navyMid, border: `1px solid ${Colors.border}`, marginBottom: 10, opacity: 0.5 }} />)}
           {!placesLoading && places.map((p, i) => <PlaceCard key={p.id} place={p} rank={i+1} accent="#2A9D8F" />)}
         </div>
       )}
@@ -138,13 +144,15 @@ export default function StaysPage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center', background: Colors.navyMid, borderRadius: 16, border: `2px dashed ${Colors.border}`, minHeight: 260 }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🗺️</div>
           <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8 }}>Find Pet-Friendly Stays</h3>
-          <p style={{ color: Colors.creammid, fontSize: 13, lineHeight: 1.6 }}>Use your location or enter a postcode to find nearby pet-friendly accommodation.</p>
+          <p style={{ color: Colors.creammid, fontSize: 13, lineHeight: 1.6 }}>Use your location or enter a postcode/city to find nearby pet-friendly accommodation.</p>
         </div>
       )}
 
       {mapReady && mapUrl && (
         <>
-          <div style={{ fontSize: 12, color: Colors.creammid, marginBottom: 8 }}>Showing: <strong style={{ color: Colors.cream }}>{FILTERS[filterIdx].label}</strong> near <strong style={{ color: Colors.cream }}>{label}</strong></div>
+          <div style={{ fontSize: 12, color: Colors.creammid, marginBottom: 8 }}>
+            Showing: <strong style={{ color: Colors.cream }}>{FILTERS[filterIdx].label}</strong> near <strong style={{ color: Colors.cream }}>{label}</strong>
+          </div>
           <div style={{ borderRadius: 16, overflow: 'hidden', border: `1px solid ${Colors.border}`, minHeight: 380 }}>
             <iframe src={mapUrl} width="100%" height="380" style={{ border: 'none', display: 'block' }} allowFullScreen loading="lazy" title="Stays map" />
           </div>

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Colors } from '../utils/theme';
-import { queryOverpass, parseOsmPlaces, geocodePostcode, type OsmPlace } from '../utils/overpassClient';
+import { searchNearbyPlaces, geocodePostcode, type OsmPlace } from '../utils/overpassClient';
 import { PlaceCard } from './StaysPage';
 
 const BG = '#EAF0F8';
 
 const FILTERS = [
-  { label: '🏥 Vet Clinics',    filter: '"amenity"="veterinary"'                          },
-  { label: '🚨 Emergency Vet',  filter: '"amenity"~"veterinary|animal_hospital|emergency"' },
-  { label: '💊 Pet Pharmacy',   filter: '"shop"~"pet|veterinary"'                          },
-  { label: '🐾 Animal Hospital', filter: '"amenity"="animal_hospital"'                     },
+  { label: '🏥 Vet Clinics',     term: 'veterinary clinic'       },
+  { label: '🚨 Emergency Vet',   term: 'emergency veterinary'    },
+  { label: '💊 Pet Pharmacy',    term: 'pet pharmacy'             },
+  { label: '🐾 Animal Hospital', term: 'animal hospital'          },
 ];
 
 export default function VetsPage() {
@@ -28,10 +28,8 @@ export default function VetsPage() {
     setCoords({lat, lon}); setLabel(lbl); setMapReady(true);
     setPlacesLoading(true); setPlaces([]); setError('');
     try {
-      const f = FILTERS[fi].filter;
-      const q = `[out:json][timeout:25];(node[${f}]["name"](around:8000,${lat},${lon});way[${f}]["name"](around:8000,${lat},${lon}););out body center 20;`;
-      const data = await queryOverpass(q, `vets:${fi}:${lat.toFixed(3)},${lon.toFixed(3)}`);
-      setPlaces(parseOsmPlaces(data.elements, lat, lon));
+      const places = await searchNearbyPlaces(lat, lon, FILTERS[fi].term, `vets:${fi}:${lat.toFixed(3)},${lon.toFixed(3)}`);
+      setPlaces(places);
     } catch (e) {
       setError('Could not load nearby places. Try the map below for results.');
     } finally { setPlacesLoading(false); }
@@ -55,7 +53,9 @@ export default function VetsPage() {
     search(c.lat, c.lon, postcode.trim());
   }
 
-  const mapUrl = coords ? `https://maps.google.com/maps?q=${encodeURIComponent(FILTERS[filterIdx].label.replace(/[^\w\s]/g,'').trim() + ' ' + label)}&ll=${coords.lat},${coords.lon}&output=embed&z=13` : null;
+  const mapUrl = coords
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(FILTERS[filterIdx].term)}&ll=${coords.lat},${coords.lon}&z=14&output=embed`
+    : null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '85vh' }}>
