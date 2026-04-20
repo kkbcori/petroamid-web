@@ -8,6 +8,8 @@ const NAV = [
   { to: '/',          icon: '🏠', label: 'Home'     },
   { to: '/pets',      icon: '🐾', label: 'My Pets'  },
   { to: '/trips/new', icon: '✈️', label: 'New Trip' },
+  { to: '/stays',     icon: '🏨', label: 'Stays'    },
+  { to: '/vets',      icon: '🏥', label: 'Vets'     },
   { to: '/settings',  icon: '⚙️', label: 'Settings' },
 ];
 
@@ -33,11 +35,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </span>
         </NavLink>
 
-        <nav className="desktop-nav" style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        {/* Desktop nav — horizontal scrollable */}
+        <nav className="desktop-nav" style={{ display: 'flex', gap: 2, alignItems: 'center', overflowX: 'auto' }}>
           {NAV.map(n => (
             <NavLink key={n.to} to={n.to} end={n.to === '/'} style={({ isActive }) => ({
-              display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20,
-              fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'all .15s',
+              display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 20,
+              fontSize: 13, fontWeight: 500, textDecoration: 'none', transition: 'all .15s', whiteSpace: 'nowrap',
               color: isActive ? '#2A9D8F' : Colors.creammid,
               background: isActive ? 'rgba(42,157,143,0.12)' : 'transparent',
             })}>
@@ -46,7 +49,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', marginLeft: 8 }}>
           <button onClick={() => setMenuOpen(o => !o)} style={{
             width: 38, height: 38, borderRadius: '50%', fontSize: 20,
             background: 'rgba(42,157,143,0.15)', border: '2px solid #2A9D8F',
@@ -84,23 +87,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main style={{ flex: 1, maxWidth: 900, width: '100%', margin: '0 auto', padding: '24px 16px 100px' }}>
+      <main style={{ flex: 1, maxWidth: 900, width: '100%', margin: '0 auto', padding: '24px 16px 110px' }}>
         {children}
       </main>
 
+      {/* Mobile bottom nav — 6 items, smaller text */}
       <nav className="mobile-nav" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: Colors.navyMid, borderTop: `1px solid ${Colors.border}`,
-        display: 'flex', justifyContent: 'space-around', padding: '8px 0 14px', zIndex: 100,
+        display: 'flex', justifyContent: 'space-around', padding: '6px 0 12px', zIndex: 100,
       }}>
         {NAV.map(n => (
           <NavLink key={n.to} to={n.to} end={n.to === '/'} style={({ isActive }) => ({
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-            textDecoration: 'none', padding: '4px 12px', borderRadius: 12,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+            textDecoration: 'none', padding: '4px 6px', borderRadius: 10, minWidth: 0,
             color: isActive ? '#2A9D8F' : Colors.creammid,
           })}>
-            <span style={{ fontSize: 22 }}>{n.icon}</span>
-            <span style={{ fontSize: 10, fontWeight: 500 }}>{n.label}</span>
+            <span style={{ fontSize: 20 }}>{n.icon}</span>
+            <span style={{ fontSize: 9, fontWeight: 500, whiteSpace: 'nowrap' }}>{n.label}</span>
           </NavLink>
         ))}
       </nav>
