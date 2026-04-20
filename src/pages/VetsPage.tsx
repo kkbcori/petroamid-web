@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Colors } from '../utils/theme';
+import { VetsBanner } from '../components/Illustrations';
 import { geocodePostcode } from '../utils/overpassClient';
-
-const BG = '#EAF0F8';
 
 const FILTERS = [
   { label: '🏥 Vet Clinics',     term: 'veterinary clinic'          },
@@ -53,10 +52,7 @@ export default function VetsPage() {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', minHeight:'85vh' }}>
-      <div style={{ backgroundColor:BG, borderRadius:'0 0 24px 24px', marginLeft:-16, marginRight:-16, padding:'20px 20px 18px', marginBottom:16 }}>
-        <h1 style={{ fontFamily:"'Playfair Display', Georgia, serif", fontSize:22, fontWeight:700, color:'#1a2952', marginBottom:4 }}>🏥 Nearby Vets</h1>
-        <p style={{ fontSize:13, color:'#4a6a8a', margin:0 }}>Find vet clinics, emergency hospitals and pet pharmacies near you</p>
-      </div>
+      <VetsBanner />
 
       <div style={{ padding:'10px 14px', background:'#FEF2F2', borderRadius:12, marginBottom:14, border:'1px solid #FECACA', display:'flex', alignItems:'center', gap:10 }}>
         <span style={{ fontSize:22 }}>🚨</span>

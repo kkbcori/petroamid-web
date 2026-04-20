@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Colors } from '../utils/theme';
+import { StaysBanner } from '../components/Illustrations';
 import { geocodePostcode } from '../utils/overpassClient';
-
-const BG = '#E8F4F0';
 
 const FILTERS = [
   { label: '🏨 Hotels',  term: 'pet friendly hotels'         },
@@ -78,10 +77,7 @@ export default function StaysPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '85vh' }}>
-      <div style={{ backgroundColor: BG, borderRadius: '0 0 24px 24px', marginLeft: -16, marginRight: -16, padding: '20px 20px 18px', marginBottom: 16 }}>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#1a3530', marginBottom: 4 }}>🏨 Pet-Friendly Stays</h1>
-        <p style={{ fontSize: 13, color: '#4a7a70', margin: 0 }}>Hotels, B&Bs and campgrounds that welcome pets</p>
-      </div>
+      <StaysBanner />
 
       <div style={{ background: Colors.navyMid, border: `1px solid ${Colors.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>

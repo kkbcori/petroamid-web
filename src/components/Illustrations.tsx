@@ -16,6 +16,8 @@ import sceneHug      from '../assets/scene-hug.png';
 import sceneWalk     from '../assets/scene-walk.png';
 import sceneBackpack from '../assets/scene-backpack.png';
 import sceneCats     from '../assets/scene-cats.png';
+import sceneStay     from '../assets/scene-stay.png';
+import sceneVet      from '../assets/scene-vet.png';
 
 export const WELCOME_COLOR   = '#E8F4F2';
 export const DASHBOARD_COLOR = '#FEF0E8';
@@ -114,6 +116,12 @@ export function DashboardBanner({ title, subtitle }: { title: string; subtitle: 
 }
 export function PetsBanner() {
   return <PageBanner title="My Pets 🐾" subtitle="Manage your travel companions" color={PETS_COLOR} imgSrc={sceneCats}     titleColor="#5c2d00" />;
+}
+export function StaysBanner() {
+  return <PageBanner title="🏨 Pet-Friendly Stays" subtitle="Hotels, B&Bs and campgrounds that welcome pets" color="#E8F4F0" imgSrc={sceneStay} titleColor="#1a3530" imgSide="right" />;
+}
+export function VetsBanner() {
+  return <PageBanner title="🏥 Nearby Vets" subtitle="Find vet clinics and animal hospitals near you" color="#EAF0F8" imgSrc={sceneVet} titleColor="#1a2952" imgSide="right" />;
 }
 export function TravelBanner() {
   return <PageBanner title="Plan a Trip ✈️" subtitle="Generate your compliance checklist" color={TRAVEL_COLOR} imgSrc={sceneAirport} titleColor="#1a2952" />;
