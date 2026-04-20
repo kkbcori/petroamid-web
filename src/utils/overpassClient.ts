@@ -29,6 +29,24 @@ function cacheSet(key: string, value: any) {
   try { sessionStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
 
+// Map IANA timezones to ISO country codes for geocoding bias
+function getCountryFromTimezone(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz.startsWith('America/'))   return 'us';
+    if (tz.startsWith('Europe/London') || tz === 'Europe/Belfast') return 'gb';
+    if (tz.startsWith('Australia/')) return 'au';
+    if (tz.startsWith('Pacific/Auckland') || tz === 'Pacific/Chatham') return 'nz';
+    if (tz.startsWith('America/Toronto') || tz.startsWith('America/Vancouver') ||
+        tz.startsWith('America/Winnipeg') || tz.startsWith('America/Halifax')) return 'ca';
+    if (tz.startsWith('Asia/Kolkata') || tz === 'Asia/Calcutta') return 'in';
+    if (tz.startsWith('Europe/')) return 'eu';   // generic EU bias
+    if (tz.startsWith('Asia/Singapore')) return 'sg';
+    if (tz.startsWith('Asia/Dubai'))    return 'ae';
+  } catch { /* ignore */ }
+  return '';
+}
+
 export async function geocodePostcode(
   postcode: string
 ): Promise<{ lat: number; lon: number; displayName: string } | null> {
@@ -36,8 +54,11 @@ export async function geocodePostcode(
   const cached = cacheGet(key);
   if (cached) return cached;
   try {
+    const country = getCountryFromTimezone();
+    // countrycodes biases results to the user's country — prevents US ZIP resolving to Ukraine
+    const countryParam = country ? `&countrycodes=${country}` : '';
     const res  = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(postcode)}&format=json&limit=1&addressdetails=0`,
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(postcode)}&format=json&limit=1&addressdetails=0${countryParam}`,
       { headers: { 'Accept-Language': 'en', 'User-Agent': 'PetRoamID/1.0' }, signal: AbortSignal.timeout(8_000) }
     );
     const data = await res.json();
