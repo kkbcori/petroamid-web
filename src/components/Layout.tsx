@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useProfileStore } from '../store/profileStore';
 import { Colors } from '../utils/theme';
-import logoUrl from '../assets/logo.jpg';
 
 const NAV = [
   { to: '/',          icon: '🏠', label: 'Home'     },
@@ -29,7 +28,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         boxShadow: `0 2px 10px ${Colors.shadow}`,
       }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
-          <img src={logoUrl} alt="PetRoamID" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} />
+          <img src="/petroamid-web/logo.jpg" alt="PetRoamID" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} />
           <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 18, fontWeight: 700, color: '#2A9D8F', whiteSpace: 'nowrap' }}>
             PetRoamID
           </span>

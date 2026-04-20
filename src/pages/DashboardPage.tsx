@@ -8,7 +8,6 @@ import { COUNTRIES } from '../data/travelRequirements';
 import type { Pet, Trip } from '../store/appStore';
 import { format, differenceInDays } from 'date-fns';
 import { DashboardBanner, DASHBOARD_COLOR } from '../components/Illustrations';
-import logoUrl from '../assets/logo.jpg';
 
 export default function DashboardPage() {
   const navigate  = useNavigate();
@@ -67,7 +66,7 @@ export default function DashboardPage() {
 
       {pets.length === 0 && trips.length === 0 && (
         <div style={{ textAlign: 'center', padding: '40px 24px', background: DASHBOARD_COLOR, borderRadius: 20, border: `1px solid rgba(0,0,0,0.06)` }}>
-          <img src={logoUrl} alt="" style={{ width: 72, height: 72, borderRadius: 16, objectFit: 'cover', marginBottom: 14, display: 'block', margin: '0 auto 14px' }} />
+          <img src="/petroamid-web/logo.jpg" alt="" style={{ width: 72, height: 72, borderRadius: 16, objectFit: 'cover', marginBottom: 14, display: 'block', margin: '0 auto 14px' }} />
           <h2 style={{ fontSize: 22, fontFamily: "'Playfair Display', Georgia, serif", marginBottom: 8 }}>Ready to Explore?</h2>
           <p style={{ color: Colors.creammid, marginBottom: 24, lineHeight: 1.6 }}>Add your pet to generate a personalised travel compliance checklist.</p>
           <button onClick={() => navigate('/pets/add')} style={{ background: '#2A9D8F', color: '#fff', border: 'none', padding: '14px 28px', borderRadius: 14, fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>🐾 Add My Pet</button>

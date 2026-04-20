@@ -68,7 +68,7 @@ export default function ProfilePage() {
       {/* Logo */}
       <div style={{ position: 'relative', zIndex: 2, padding: '44px 24px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src={logoUrl} alt="PetRoamID" style={{ width: 44, height: 44, borderRadius: 11, objectFit: 'cover', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }} />
+          <img src="/petroamid-web/logo.jpg" alt="PetRoamID" style={{ width: 44, height: 44, borderRadius: 11, objectFit: 'cover', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }} />
           <div>
             <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#1a3530' }}>PetRoamID</div>
             <div style={{ fontSize: 11, color: '#4a7a70' }}>International pet travel compliance</div>
