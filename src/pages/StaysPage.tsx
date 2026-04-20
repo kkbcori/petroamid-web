@@ -89,8 +89,9 @@ export default function StaysPage() {
   }
 
   // Use coordinates in map URL for accuracy — not raw postcode text
+  // Use coordinates as the search anchor so the map always shows the correct location
   const mapUrl = coords
-    ? `https://maps.google.com/maps?q=${encodeURIComponent(FILTERS[filterIdx].term + ' pet friendly')}&ll=${coords.lat},${coords.lon}&z=13&output=embed`
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(FILTERS[filterIdx].term + ' pet friendly near ' + coords.lat + ',' + coords.lon)}&ll=${coords.lat},${coords.lon}&z=13&output=embed`
     : null;
 
   return (

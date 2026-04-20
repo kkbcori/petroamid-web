@@ -53,8 +53,9 @@ export default function VetsPage() {
     search(c.lat, c.lon, postcode.trim());
   }
 
+  // Coordinates in query anchor the search to the correct location
   const mapUrl = coords
-    ? `https://maps.google.com/maps?q=${encodeURIComponent(FILTERS[filterIdx].term)}&ll=${coords.lat},${coords.lon}&z=14&output=embed`
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(FILTERS[filterIdx].term + ' near ' + coords.lat + ',' + coords.lon)}&ll=${coords.lat},${coords.lon}&z=13&output=embed`
     : null;
 
   return (
