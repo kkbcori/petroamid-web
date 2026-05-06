@@ -16,6 +16,7 @@ import sceneVet      from '../assets/scene-vet.png';
 export const WELCOME_COLOR   = '#E8F4F2';
 export const DASHBOARD_COLOR = '#FEF0E8';
 import PetsBannerAnimation from './PetsBannerAnimation';
+import DashboardBannerAnimation from './DashboardBannerAnimation';
 
 export const PETS_COLOR      = '#FEF3E2';
 export const TRAVEL_COLOR    = '#E8EDF8';
@@ -108,7 +109,12 @@ export function PageBanner({
 }
 
 export function DashboardBanner({ title, subtitle }: { title: string; subtitle: string }) {
-  return <PageBanner title={title} subtitle={subtitle} color={DASHBOARD_COLOR} imgSrc={scenePlane}    titleColor="#3b1a0a" />;
+  return (
+    <div style={{ position: 'relative' }}>
+      <PageBanner title={title} subtitle={subtitle} color={DASHBOARD_COLOR} imgSrc={scenePlane} titleColor="#3b1a0a" />
+      <DashboardBannerAnimation />
+    </div>
+  );
 }
 export function PetsBanner() {
   return (
