@@ -1,9 +1,9 @@
-// Bird flying animation — centered in the left text area of Plan a Trip banner
+// Walking dog animation for Settings banner left area
 import React, { useEffect, useRef } from 'react';
 import lottie, { AnimationItem } from 'lottie-web';
-import lottieBirdData from '../assets/lottie-bird.json';
+import lottieDogData from '../assets/lottie-dog-walk.json';
 
-export default function TripBannerAnimation() {
+export default function SettingsBannerAnimation() {
   const containerRef = useRef<HTMLDivElement>(null);
   const animRef      = useRef<AnimationItem | null>(null);
 
@@ -14,7 +14,7 @@ export default function TripBannerAnimation() {
       renderer:      'svg',
       loop:          true,
       autoplay:      true,
-      animationData: lottieBirdData,
+      animationData: lottieDogData,
     });
     return () => { animRef.current?.destroy(); animRef.current = null; };
   }, []);

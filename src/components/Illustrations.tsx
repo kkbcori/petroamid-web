@@ -18,6 +18,7 @@ export const DASHBOARD_COLOR = '#FEF0E8';
 import PetsBannerAnimation from './PetsBannerAnimation';
 import DashboardBannerAnimation from './DashboardBannerAnimation';
 import TripBannerAnimation from './TripBannerAnimation';
+import SettingsBannerAnimation from './SettingsBannerAnimation';
 
 export const PETS_COLOR      = '#FEF3E2';
 export const TRAVEL_COLOR    = '#E8EDF8';
@@ -137,7 +138,12 @@ export function ChecklistBanner({ title, subtitle }: { title: string; subtitle: 
   return <PageBanner title={title} subtitle={subtitle}                                         color={CHECKLIST_COLOR} imgSrc={sceneHug}     titleColor="#3b2710" />;
 }
 export function SettingsBanner() {
-  return <PageBanner title="Settings ⚙️" subtitle="Profile, backup & data"                    color={SETTINGS_COLOR}  imgSrc={sceneBackpack} titleColor="#5c2800" />;
+  return (
+    <div style={{ position: 'relative' }}>
+      <PageBanner title="Settings ⚙️" subtitle="Profile, backup & data" color={SETTINGS_COLOR} imgSrc={sceneBackpack} titleColor="#5c2800" />
+      <SettingsBannerAnimation />
+    </div>
+  );
 }
 export function StaysBanner() {
   return <PageBanner title="🏨 Pet-Friendly Stays" subtitle="Hotels, B&Bs and campgrounds that welcome pets" color="#E8F4F0" imgSrc={sceneStay} titleColor="#1a3530" imgSide="right" />;

@@ -24,10 +24,10 @@ export default function DashboardBannerAnimation() {
       ref={containerRef}
       style={{
         position:      'absolute',
-        left:          8,
-        bottom:        6,
-        width:         130,
-        height:        130,
+        left:          14,
+        bottom:        8,
+        width:         110,
+        height:        110,
         zIndex:        3,
         opacity:       0.95,
         pointerEvents: 'none',
