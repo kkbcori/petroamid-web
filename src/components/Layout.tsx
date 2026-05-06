@@ -42,9 +42,12 @@ function LottieTabIcon({ data, isActive, size = 28, loop = false }: LottieTabIco
   useEffect(() => {
     if (!animRef.current) return;
     if (isActive) {
-      animRef.current.goToAndPlay(0);
+      animRef.current.setSpeed(1);
+      animRef.current.play();
     } else {
-      animRef.current.goToAndStop(0, true);
+      // Inactive: play slowly so icon is always visible
+      animRef.current.setSpeed(0.4);
+      animRef.current.play();
     }
   }, [isActive]);
 
@@ -53,12 +56,12 @@ function LottieTabIcon({ data, isActive, size = 28, loop = false }: LottieTabIco
 
 // ── Nav definition ─────────────────────────────────────────────────────────────
 const NAV = [
-  { to: '/',          label: 'Home',     data: lottieHomeData,     loop: false },
-  { to: '/pets',      label: 'My Pets',  data: lottiePetsData,     loop: false },
-  { to: '/trips/new', label: 'New Trip', data: lottieTripData,     loop: false },
-  { to: '/stays',     label: 'Stays',    data: lottieStaysData,    loop: false },
-  { to: '/vets',      label: 'Vets',     data: lottieVetsData,     loop: false },
-  { to: '/settings',  label: 'Settings', data: lottieSettingsData, loop: true  },
+  { to: '/',          label: 'Home',     data: lottieHomeData,     loop: true },
+  { to: '/pets',      label: 'My Pets',  data: lottiePetsData,     loop: true },
+  { to: '/trips/new', label: 'New Trip', data: lottieTripData,     loop: true },
+  { to: '/stays',     label: 'Stays',    data: lottieStaysData,    loop: true },
+  { to: '/vets',      label: 'Vets',     data: lottieVetsData,     loop: true },
+  { to: '/settings',  label: 'Settings', data: lottieSettingsData, loop: true },
 ];
 
 // ── Layout ────────────────────────────────────────────────────────────────────
