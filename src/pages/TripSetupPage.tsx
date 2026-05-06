@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { injectAnimationStyles, addRipple } from '../utils/animations';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../store/AppContext';
 import { Colors } from '../utils/theme';
@@ -133,6 +134,7 @@ function CountrySearchDropdown({
 
 // ── Main page ─────────────────────────────────────────────────────────────
 export default function TripSetupPage() {
+  useEffect(() => { injectAnimationStyles(); }, []);
   const navigate = useNavigate();
   const { pets, trips, addTrip } = useData();
 
@@ -237,7 +239,7 @@ export default function TripSetupPage() {
             <FieldLabel>Select Pet *</FieldLabel>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {pets.map((p: Pet) => (
-                <button key={p.id} onClick={() => setPetId(p.id)} style={{
+                <button key={p.id} onClick={(e) => { addRipple(e); setPetId(p.id); }} className="anim-fade-slide-up" style={{ animationDelay: `${pets.indexOf(p) * 60}ms`,
                   display:'flex', alignItems:'center', gap:8, padding:'8px 14px', borderRadius:20,
                   border:`2px solid ${petId === p.id ? '#3B5BDB' : Colors.border}`,
                   background: petId === p.id ? TRAVEL_COLOR : Colors.navyLight,
@@ -280,16 +282,16 @@ export default function TripSetupPage() {
               {availableDestinations.map(d => {
                 const isSelected = destination === d.code;
                 return (
-                  <button key={d.code} onClick={() => setDestination(d.code)} style={{
+                  <button key={d.code} onClick={(e) => { addRipple(e); setDestination(d.code); }} className="anim-pop-in" style={{ animationDelay: `${availableDestinations.indexOf(d) * 60}ms`,
                     padding:'14px 10px', borderRadius:14, textAlign:'center',
                     border:`2px solid ${isSelected ? '#3B5BDB' : Colors.border}`,
                     background: isSelected ? TRAVEL_COLOR : Colors.navyLight,
                     cursor:'pointer', transition:'all .15s',
                     boxShadow: isSelected ? '0 2px 10px rgba(59,91,219,0.2)' : 'none',
                   }}>
-                    <div style={{ fontSize:28 }}>{d.flag}</div>
-                    <div style={{ fontSize:13, fontWeight:700, color: isSelected ? '#1e3a8a' : Colors.cream, marginTop:4 }}>{d.label}</div>
-                    <div style={{ fontSize:10, color: isSelected ? '#1e3a8a' : Colors.creammid, marginTop:2 }}>{d.desc}</div>
+                    <div style={{ fontSize:40, lineHeight:1, marginBottom:4 }}>{d.flag}</div>
+                    <div style={{ fontSize:12, fontWeight:700, color: isSelected ? '#1e3a8a' : Colors.cream, marginTop:2 }}>{d.label}</div>
+                    <div style={{ fontSize:10, color: isSelected ? '#1e3a8a' : Colors.creammid, marginTop:1 }}>{d.desc}</div>
                   </button>
                 );
               })}
@@ -337,7 +339,7 @@ export default function TripSetupPage() {
           </div>
         )}
 
-        <button onClick={handleCreate} disabled={!canCreate || pets.length === 0}
+        <button onClick={(e) => { if (canCreate && pets.length > 0) { addRipple(e); handleCreate(); } }} disabled={!canCreate || pets.length === 0}
           style={{
             width:'100%', padding:'14px', borderRadius:14, marginTop:8,
             background: (!canCreate || pets.length === 0) ? Colors.border : 'linear-gradient(135deg, #1e3a8a 0%, #3B5BDB 100%)',
