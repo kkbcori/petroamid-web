@@ -17,6 +17,7 @@ export const WELCOME_COLOR   = '#E8F4F2';
 export const DASHBOARD_COLOR = '#FEF0E8';
 import PetsBannerAnimation from './PetsBannerAnimation';
 import DashboardBannerAnimation from './DashboardBannerAnimation';
+import TripBannerAnimation from './TripBannerAnimation';
 
 export const PETS_COLOR      = '#FEF3E2';
 export const TRAVEL_COLOR    = '#E8EDF8';
@@ -125,7 +126,12 @@ export function PetsBanner() {
   );
 }
 export function TravelBanner() {
-  return <PageBanner title="Plan a Trip ✈️" subtitle="Generate your compliance checklist"     color={TRAVEL_COLOR}    imgSrc={sceneAirport} titleColor="#1a2952" />;
+  return (
+    <div style={{ position: 'relative' }}>
+      <PageBanner title="Plan a Trip ✈️" subtitle="Generate your compliance checklist" color={TRAVEL_COLOR} imgSrc={sceneAirport} titleColor="#1a2952" />
+      <TripBannerAnimation />
+    </div>
+  );
 }
 export function ChecklistBanner({ title, subtitle }: { title: string; subtitle: string }) {
   return <PageBanner title={title} subtitle={subtitle}                                         color={CHECKLIST_COLOR} imgSrc={sceneHug}     titleColor="#3b2710" />;
