@@ -342,8 +342,8 @@ export default function TripSetupPage() {
         <button onClick={(e) => { if (canCreate && pets.length > 0) { addRipple(e); handleCreate(); } }} disabled={!canCreate || pets.length === 0}
           style={{
             width:'100%', padding:'14px', borderRadius:14, marginTop:8,
-            background: (!canCreate || pets.length === 0) ? Colors.border : 'linear-gradient(135deg, #1e3a8a 0%, #3B5BDB 100%)',
-            color:'#fff', border:'none', fontWeight:700, fontSize:16,
+            background: (!canCreate || pets.length === 0) ? Colors.border : 'linear-gradient(135deg, #2A9D8F 0%, #1d7a6e 100%)',
+            color: (!canCreate || pets.length === 0) ? Colors.creammid : '#fff', border:'none', fontWeight:700, fontSize:16,
             cursor: (!canCreate || pets.length === 0) ? 'not-allowed' : 'pointer',
             boxShadow: canCreate ? '0 4px 16px rgba(30,58,138,0.35)' : 'none',
             opacity: (!canCreate || pets.length === 0) ? 0.6 : 1,
