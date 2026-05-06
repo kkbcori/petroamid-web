@@ -1,12 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useData } from '../store/AppContext';
 import { Colors } from '../utils/theme';
 import { buildTimeline, calcReadinessScore, type TimelineEvent } from '../utils/timelineCalculator';
 import { COUNTRIES } from '../data/travelRequirements';
 import { FREE_CHECKLIST_IDS } from '../store/appStore';
+import type { Pet, Trip } from '../store/appStore';
 import { format, differenceInDays } from 'date-fns';
 import { ChecklistBanner, CHECKLIST_COLOR } from '../components/Illustrations';
+import { injectAnimationStyles, triggerConfetti, addRipple } from '../utils/animations';
 
 const CAT_ICONS: Record<string, string> = {
   document: '📄', vaccination: '💉', health: '🏥', booking: '📅', microchip: '🔬', form: '📋',
@@ -16,10 +18,14 @@ export default function ChecklistPage() {
   const navigate   = useNavigate();
   const { tripId } = useParams<{ tripId: string }>();
   const data       = useData();
-  const trip       = data.trips.find(t => t.id === tripId);
-  const pet        = data.pets.find(p => p.id === trip?.petId);
+  const trip       = data.trips.find((t: Trip) => t.id === tripId);
+  const pet        = data.pets.find((p: Pet) => p.id === trip?.petId);
   const [expanded,     setExpanded]     = useState<string | null>(null);
   const [unlockPrompt, setUnlockPrompt] = useState(false);
+  const [justCompleted, setJustCompleted] = useState<string | null>(null);
+  const confettiRef = useRef<HTMLDivElement>(null);
+  const prevScore   = useRef(0);
+  useEffect(() => { injectAnimationStyles(); }, []);
 
   if (!trip) return (
     <div style={{ padding: 32, textAlign: 'center', color: Colors.creammid }}>
@@ -48,8 +54,17 @@ export default function ChecklistPage() {
   const tripTitle = trip.tripName ?? `${pet?.name} → ${country?.name ?? trip.destination}`;
   const tripSub   = `${format(new Date(trip.travelDate), 'MMM d, yyyy')} · ${daysLeft === 0 ? 'Today!' : daysLeft > 0 ? `${daysLeft} days away` : `${Math.abs(daysLeft)} days ago`}`;
 
+
+  // Fire confetti when score first hits 100%
+  useEffect(() => {
+    if (score === 100 && prevScore.current < 100 && confettiRef.current) {
+      triggerConfetti(confettiRef.current);
+    }
+    prevScore.current = score;
+  }, [score]);
+
   return (
-    <div>
+    <div ref={confettiRef}>
       <ChecklistBanner title={tripTitle} subtitle={tripSub} />
 
       {/* Readiness score strip */}

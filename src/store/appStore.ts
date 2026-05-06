@@ -181,3 +181,6 @@ export function createAppStore(profileId: string) {
 }
 
 export type AppStore = ReturnType<ReturnType<typeof createAppStore>['getState']>;
+
+// Alias for backward compatibility
+export const getAppStore = createAppStore;
