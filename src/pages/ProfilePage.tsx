@@ -10,7 +10,8 @@ const AVATARS = ['🐶','🐱','🦮','🐕','🐈','🐩','🦜','🐇','🐾',
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { profiles, createProfile, switchProfile, activeProfileId, updateProfile } = useProfileStore();
+  const { profiles, createProfile, switchProfile, activeProfileId, updateProfile, deleteProfile } = useProfileStore();
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string|null>(null);
   const [creating,    setCreating]    = useState(profiles.length === 0);
   const [name,        setName]        = useState('');
   const [chosenEmoji, setChosenEmoji] = useState(AVATARS[0]);
@@ -68,7 +69,7 @@ export default function ProfilePage() {
       {/* Logo */}
       <div style={{ position: 'relative', zIndex: 2, padding: '44px 24px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src="/petroamid-web/logo.jpg" alt="PetRoamID" style={{ width: 44, height: 44, borderRadius: 11, objectFit: 'cover', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }} />
+          <img src="/petroamid-web/logo.jpg" alt="PetRoamID" style={{ width: 44, height: 44, borderRadius: 11, objectFit: 'contain', background: '#2A9D8F', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }} />
           <div>
             <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#1a3530' }}>PetRoamID</div>
             <div style={{ fontSize: 11, color: '#4a7a70' }}>International pet travel compliance</div>
@@ -90,27 +91,34 @@ export default function ProfilePage() {
             <h2 style={{ fontSize: 19, fontWeight: 700, color: '#1a3530', marginBottom: 4 }}>Who's travelling? 🌍</h2>
             <p style={{ fontSize: 13, color: '#5a8070', marginBottom: 16 }}>Select your profile to continue</p>
             {profiles.map(p => (
-              <button key={p.id} onClick={() => switchProfile(p.id)} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                padding: '12px 14px', borderRadius: 14, marginBottom: 10,
-                backgroundColor: `${BG}cc`, border: '1.5px solid rgba(42,130,110,0.15)',
-                cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#2A9D8F'; e.currentTarget.style.transform = 'translateX(3px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(42,130,110,0.15)'; e.currentTarget.style.transform = 'none'; }}>
-                <span style={{ fontSize: 30 }}>{p.avatarEmoji}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: '#1a3530' }}>{p.displayName}</div>
-                  <div style={{ fontSize: 11, color: '#5a8070' }}>Joined {new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
-                </div>
-                <span style={{ color: '#2A9D8F', fontSize: 18, fontWeight: 700 }}>›</span>
-              </button>
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                {confirmDeleteId === p.id ? (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 14, backgroundColor: 'rgba(239,68,68,0.08)', border: '1.5px solid rgba(239,68,68,0.3)' }}>
+                    <span style={{ flex: 1, fontSize: 13, color: '#ef4444', fontWeight: 600 }}>Delete "{p.displayName}"?</span>
+                    <button onClick={() => { try { localStorage.removeItem(`petroamid-${p.id}`); } catch {} deleteProfile(p.id); setConfirmDeleteId(null); }} style={{ padding: '5px 12px', borderRadius: 8, background: '#ef4444', border: 'none', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>Delete</button>
+                    <button onClick={() => setConfirmDeleteId(null)} style={{ padding: '5px 10px', borderRadius: 8, background: 'rgba(42,130,110,0.1)', border: 'none', color: '#5a8070', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+                  </div>
+                ) : (<>
+                  <button onClick={() => switchProfile(p.id)} style={{
+                    flex: 1, display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px 14px', borderRadius: 14,
+                    backgroundColor: `${BG}cc`, border: '1.5px solid rgba(42,130,110,0.15)',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#2A9D8F'; e.currentTarget.style.transform = 'translateX(2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(42,130,110,0.15)'; e.currentTarget.style.transform = 'none'; }}>
+                    <span style={{ fontSize: 30 }}>{p.avatarEmoji}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: '#1a3530' }}>{p.displayName}</div>
+                      <div style={{ fontSize: 11, color: '#5a8070' }}>Joined {new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
+                    </div>
+                    <span style={{ color: '#2A9D8F', fontSize: 18, fontWeight: 700 }}>›</span>
+                  </button>
+                  <button onClick={() => setConfirmDeleteId(p.id)} title="Delete profile" style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1.5px solid rgba(239,68,68,0.2)', color: '#ef4444', fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>🗑️</button>
+                </>)}
+              </div>
             ))}
-            <button onClick={() => setCreating(true)} style={{
-              width: '100%', padding: '10px', borderRadius: 12, marginTop: 4,
-              background: 'transparent', border: '1.5px dashed rgba(42,130,110,0.3)',
-              color: '#5a8070', fontSize: 14, cursor: 'pointer',
-            }}>+ New Profile</button>
+
           </>)}
 
           {creating && (
