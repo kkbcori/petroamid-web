@@ -1,25 +1,66 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useProfileStore } from '../store/profileStore';
 import { Colors } from '../utils/theme';
+import lottie from 'lottie-web';
+import lottieHomeData from '../assets/lottie-home.json';
+
+// ── Lottie icon hook ─────────────────────────────────────────────────────────
+// Web:  lottie-web renders SVG
+// RN equivalent: <LottieView source={require('../assets/lottie-home.json')}
+//                  autoPlay={isActive} loop={false} style={{width:28,height:28}} />
+
+function useLottie(containerRef: React.RefObject<HTMLDivElement>, animData: object, isActive: boolean) {
+  const animRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    animRef.current = lottie.loadAnimation({
+      container:     containerRef.current,
+      renderer:      'svg',
+      loop:          false,
+      autoplay:      false,
+      animationData: animData,
+    });
+    return () => { animRef.current?.destroy(); animRef.current = null; };
+  }, []);
+
+  useEffect(() => {
+    if (!animRef.current) return;
+    if (isActive) {
+      animRef.current.goToAndPlay(0);
+    } else {
+      animRef.current.goToAndStop(0);
+    }
+  }, [isActive]);
+}
+
+// ── Home tab with Lottie icon ────────────────────────────────────────────────
+function HomeTabIcon({ isActive }: { isActive: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLottie(ref, lottieHomeData, isActive);
+  return <div ref={ref} style={{ width: 28, height: 28 }} />;
+}
 
 const NAV = [
-  { to: '/',          icon: '🏠', label: 'Home'     },
-  { to: '/pets',      icon: '🐾', label: 'My Pets'  },
-  { to: '/trips/new', icon: '✈️', label: 'New Trip' },
-  { to: '/stays',     icon: '🏨', label: 'Stays'    },
-  { to: '/vets',      icon: '🏥', label: 'Vets'     },
-  { to: '/settings',  icon: '⚙️', label: 'Settings' },
+  { to: '/',          icon: null,  label: 'Home',     lottie: true  },
+  { to: '/pets',      icon: '🐾',  label: 'My Pets',  lottie: false },
+  { to: '/trips/new', icon: '✈️',  label: 'New Trip', lottie: false },
+  { to: '/stays',     icon: '🏨',  label: 'Stays',    lottie: false },
+  { to: '/vets',      icon: '🏥',  label: 'Vets',     lottie: false },
+  { to: '/settings',  icon: '⚙️',  label: 'Settings', lottie: false },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { activeProfile, logout, profiles, switchProfile } = useProfileStore();
-  const navigate = useNavigate();
-  const profile  = activeProfile();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const profile   = activeProfile();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: Colors.navy }}>
+      {/* ── Header ── */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 100,
         background: Colors.navyMid, borderBottom: `1px solid ${Colors.border}`,
@@ -28,26 +69,31 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         boxShadow: `0 2px 10px ${Colors.shadow}`,
       }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
-          <img src="/petroamid-web/logo.jpg" alt="PetRoamID" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} />
+          <img src="/petroamid-web/logo.jpg" alt="PetRoamID" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'contain', background: '#2A9D8F' }} />
           <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 18, fontWeight: 700, color: '#2A9D8F', whiteSpace: 'nowrap' }}>
             PetRoamID
           </span>
         </NavLink>
 
-        {/* Desktop nav — horizontal scrollable */}
+        {/* Desktop nav */}
         <nav className="desktop-nav" style={{ display: 'flex', gap: 2, alignItems: 'center', overflowX: 'auto' }}>
-          {NAV.map(n => (
-            <NavLink key={n.to} to={n.to} end={n.to === '/'} style={({ isActive }) => ({
-              display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 20,
-              fontSize: 13, fontWeight: 500, textDecoration: 'none', transition: 'all .15s', whiteSpace: 'nowrap',
-              color: isActive ? '#2A9D8F' : Colors.creammid,
-              background: isActive ? 'rgba(42,157,143,0.12)' : 'transparent',
-            })}>
-              <span>{n.icon}</span><span>{n.label}</span>
-            </NavLink>
-          ))}
+          {NAV.map(n => {
+            const isActive = n.to === '/' ? location.pathname === '/petroamid-web' || location.pathname === '/' : location.pathname.startsWith(n.to);
+            return (
+              <NavLink key={n.to} to={n.to} end={n.to === '/'} style={({ isActive: a }) => ({
+                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 20,
+                fontSize: 13, fontWeight: 500, textDecoration: 'none', transition: 'all .15s', whiteSpace: 'nowrap',
+                color: a ? '#2A9D8F' : Colors.creammid,
+                background: a ? 'rgba(42,157,143,0.12)' : 'transparent',
+              })}>
+                {n.lottie ? <HomeTabIcon isActive={isActive} /> : <span>{n.icon}</span>}
+                <span>{n.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
+        {/* Profile menu */}
         <div style={{ position: 'relative', marginLeft: 8 }}>
           <button onClick={() => setMenuOpen(o => !o)} style={{
             width: 38, height: 38, borderRadius: '50%', fontSize: 20,
@@ -90,22 +136,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Mobile bottom nav — 6 items, smaller text */}
+      {/* ── Mobile bottom nav ── */}
       <nav className="mobile-nav" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: Colors.navyMid, borderTop: `1px solid ${Colors.border}`,
         display: 'flex', justifyContent: 'space-around', padding: '6px 0 12px', zIndex: 100,
       }}>
-        {NAV.map(n => (
-          <NavLink key={n.to} to={n.to} end={n.to === '/'} style={({ isActive }) => ({
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
-            textDecoration: 'none', padding: '4px 6px', borderRadius: 10, minWidth: 0,
-            color: isActive ? '#2A9D8F' : Colors.creammid,
-          })}>
-            <span style={{ fontSize: 20 }}>{n.icon}</span>
-            <span style={{ fontSize: 9, fontWeight: 500, whiteSpace: 'nowrap' }}>{n.label}</span>
-          </NavLink>
-        ))}
+        {NAV.map(n => {
+          const isActive = n.to === '/'
+            ? location.pathname === '/petroamid-web' || location.pathname === '/' || location.pathname === '/petroamid-web/'
+            : location.pathname.includes(n.to);
+          return (
+            <NavLink key={n.to} to={n.to} end={n.to === '/'} style={({ isActive: a }) => ({
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+              textDecoration: 'none', padding: '4px 6px', borderRadius: 10, minWidth: 0,
+              color: a ? '#2A9D8F' : Colors.creammid,
+            })}>
+              {n.lottie
+                ? <HomeTabIcon isActive={isActive} />
+                : <span style={{ fontSize: 20 }}>{n.icon}</span>
+              }
+              <span style={{ fontSize: 9, fontWeight: 500, whiteSpace: 'nowrap' }}>{n.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
 
       <style>{`
