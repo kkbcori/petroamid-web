@@ -1,90 +1,106 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// PetRoamID – App Data Store  (local-only, no backend)
-// Identical business logic to React Native app.
-// Storage: localStorage keyed per profile ID.
+// PetRoamID Web — App Store (Zustand + localStorage)
 // ─────────────────────────────────────────────────────────────────────────────
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { DestinationCountry, PetType, TravelScenario, ChecklistItem } from '../data/travelRequirements';
-import { applyPetProfileToChecklist } from '../utils/timelineCalculator';
+import type { TravelScenario, ChecklistItem } from '../data/travelRequirements';
 
 export const FREE_PET_LIMIT     = 1;
 export const FREE_TRIP_LIMIT    = 1;
 export const FREE_CHECKLIST_IDS = ['microchip'];
 
-export function hasValidVaccination(vaccinations: VaccinationRecord[]): boolean {
-  if (!vaccinations?.length) return false;
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  return vaccinations.some(v => {
-    if (!v.nextDueDate) return true;
-    try { return new Date(v.nextDueDate) >= today; } catch { return false; }
-  });
-}
-
-function syncVaccinationChecklistForPet(trips: Trip[], petId: string, vaccinations: VaccinationRecord[]): Trip[] {
-  const hasValid = hasValidVaccination(vaccinations);
-  return trips.map(trip => {
-    if (!(trip.petIds ?? [trip.petId]).includes(petId)) return trip;
-    const vacIds = (trip.checklist ?? []).filter((ci: ChecklistItem) => ci.category === 'vaccination').map((ci: ChecklistItem) => ci.id);
-    if (!vacIds.length) return trip;
-    const updatedCS = { ...trip.checklistState };
-    vacIds.forEach((id: string) => { updatedCS[id] = { completed: hasValid, completedDate: hasValid ? new Date().toISOString() : undefined }; });
-    return {
-      ...trip, checklistState: updatedCS,
-      checklist: (trip.checklist ?? []).map((ci: ChecklistItem) => ci.category === 'vaccination' ? { ...ci, completed: hasValid } : ci),
-    };
-  });
-}
-
-// ── Entities ──────────────────────────────────────────────────────────────────
 export interface VaccinationRecord {
-  id: string; vaccineName: string; dateAdministered: string;
-  nextDueDate?: string; batchNumber?: string; veterinarianName?: string;
-  clinicName?: string; notes?: string;
+  id: string;
+  vaccineName: string;
+  dateAdministered: string;
+  nextDueDate?: string;
 }
 
 export interface Pet {
-  id: string; name: string; species: PetType;
-  breed?: string; dateOfBirth: string; microchipNumber?: string;
-  color?: string; avatarEmoji?: string;
-  vaccinations: VaccinationRecord[]; createdAt: string;
-  vetName?: string; vetPhone?: string; vetClinic?: string;
+  id: string;
+  name: string;
+  species: 'dog' | 'cat';
+  dateOfBirth: string;
+  // Optional extended fields used by AddPetPage / PetsPage
+  breed?: string;
+  color?: string;
+  microchipNumber?: string;
+  avatarEmoji?: string;
+  vetName?: string;
+  vetPhone?: string;
+  vetClinic?: string;
+  vaccinations: VaccinationRecord[];
+  createdAt: string;
 }
 
 export interface Trip {
-  id: string; petId: string; petIds: string[];
-  originCountryCode: string; destination: DestinationCountry;
-  travelDate: string; isUSVaccinated?: boolean;
-  scenario: TravelScenario; checklist: ChecklistItem[];
-  checklistState: Record<string, { completed: boolean; completedDate?: string }>;
-  createdAt: string; isPremium: boolean; tripName?: string;
+  id: string;
+  petId: string;
+  petIds: string[];
+  originCountryCode: string;
+  destination: string;
+  travelDate: string;
+  isUSVaccinated?: boolean;
+  scenario: TravelScenario;
+  checklist: ChecklistItem[];
+  checklistState: Record<string, boolean>;
+  createdAt: string;
+  isPremium: boolean;
+  tripName?: string;
 }
 
-export interface PurchaseRecord {
-  tripId: string; purchasedAt: string; amountCents: number;
+// Exported as both Purchase and PurchaseRecord for compatibility
+export interface Purchase {
+  id: string;
+  tripId: string;
+  purchasedAt: string;
+}
+export type PurchaseRecord = Purchase;
+
+export interface ImportResult {
+  success: boolean;
+  error?: string;
 }
 
-export interface AppState {
-  pets: Pet[]; trips: Trip[]; purchases: PurchaseRecord[];
+interface AppState {
+  pets:      Pet[];
+  trips:     Trip[];
+  purchases: Purchase[];
 
-  addPet:    (pet: Pet) => void;
+  addPet:    (pet: Pet)    => void;
   updatePet: (id: string, updates: Partial<Pet>) => void;
   deletePet: (id: string) => void;
 
-  addVaccination:    (petId: string, rec: VaccinationRecord) => void;
-  updateVaccination: (petId: string, recId: string, updates: Partial<VaccinationRecord>) => void;
-  deleteVaccination: (petId: string, recId: string) => void;
-
-  addTrip:    (trip: Trip) => void;
+  addTrip:    (trip: Trip)  => void;
   updateTrip: (id: string, updates: Partial<Trip>) => void;
   deleteTrip: (id: string) => void;
+  unlockTrip: (id: string) => void;
 
   toggleChecklistItem: (tripId: string, itemId: string) => void;
-  unlockTrip:          (tripId: string) => void;
+
+  addVaccination:    (petId: string, record: VaccinationRecord) => void;
+  updateVaccination: (petId: string, recordId: string, updates: Partial<VaccinationRecord>) => void;
+  deleteVaccination: (petId: string, recordId: string) => void;
 
   exportAsJSON:   () => string;
-  importFromJSON: (json: string) => { success: boolean; error?: string };
+  importFromJSON: (json: string) => ImportResult;
   clearAll:       () => void;
+}
+
+export function hasValidVaccination(vaccinations: VaccinationRecord[] | null | undefined): boolean {
+  if (!vaccinations?.length) return false;
+  return vaccinations.some(v => {
+    if (!v.nextDueDate) return true;
+    const due = new Date(v.nextDueDate);
+    return !isNaN(due.getTime()) && due > new Date();
+  });
+}
+
+function syncVaccsToChecklist(checklist: ChecklistItem[], vaccinations: VaccinationRecord[]): ChecklistItem[] {
+  const hasValid = hasValidVaccination(vaccinations);
+  return checklist.map(item =>
+    item.category === 'vaccination' ? { ...item, completed: hasValid } : item
+  );
 }
 
 export function createAppStore(profileId: string) {
@@ -93,115 +109,75 @@ export function createAppStore(profileId: string) {
       (set, get) => ({
         pets: [], trips: [], purchases: [],
 
-        addPet: (pet) => set(s => ({ pets: [...s.pets, pet] })),
-        updatePet: (id, updates) =>
-          set(s => ({
-            pets: s.pets.map(p => {
-              if (p.id !== id) return p;
-              const updated = { ...p, ...updates };
-              s.trips.filter(t => t.petId === id).forEach(t => {
-                get().updateTrip(t.id, {
-                  checklist: applyPetProfileToChecklist(t.checklist ?? [], updated.dateOfBirth, updated.microchipNumber, new Date(t.travelDate)),
-                });
-              });
-              return updated;
-            }),
-          })),
-        deletePet: (id) =>
-          set(s => ({
-            pets: s.pets.filter(p => p.id !== id),
-            trips: s.trips
-              .map(t => { const ids = (t.petIds ?? [t.petId]).filter(pid => pid !== id); return ids.length ? { ...t, petIds: ids, petId: ids[0] } : null; })
-              .filter((t): t is Trip => t !== null),
-          })),
+        addPet:    (pet)          => set(s => ({ pets: [...s.pets, pet] })),
+        updatePet: (id, updates)  => set(s => ({ pets: s.trips ? s.pets.map(p => p.id === id ? { ...p, ...updates } : p) : s.pets.map(p => p.id === id ? { ...p, ...updates } : p) })),
+        deletePet: (id)           => set(s => ({
+          pets:  s.pets.filter(p => p.id !== id),
+          trips: s.trips.filter(t => t.petId !== id && !(t.petIds ?? []).includes(id)),
+        })),
 
-        addVaccination: (petId, rec) =>
-          set(s => {
-            const updatedPets = s.pets.map(p => p.id === petId ? { ...p, vaccinations: [...p.vaccinations, rec] } : p);
-            const pet = updatedPets.find(p => p.id === petId);
-            return { pets: updatedPets, trips: syncVaccinationChecklistForPet(s.trips, petId, pet?.vaccinations ?? []) };
-          }),
-        updateVaccination: (petId, recId, updates) =>
-          set(s => {
-            const updatedPets = s.pets.map(p => p.id === petId ? { ...p, vaccinations: p.vaccinations.map(v => v.id === recId ? { ...v, ...updates } : v) } : p);
-            const pet = updatedPets.find(p => p.id === petId);
-            return { pets: updatedPets, trips: syncVaccinationChecklistForPet(s.trips, petId, pet?.vaccinations ?? []) };
-          }),
-        deleteVaccination: (petId, recId) =>
-          set(s => {
-            const updatedPets = s.pets.map(p => p.id === petId ? { ...p, vaccinations: p.vaccinations.filter(v => v.id !== recId) } : p);
-            const pet = updatedPets.find(p => p.id === petId);
-            return { pets: updatedPets, trips: syncVaccinationChecklistForPet(s.trips, petId, pet?.vaccinations ?? []) };
-          }),
+        addTrip:    (trip)         => set(s => ({ trips: [...s.trips, trip] })),
+        updateTrip: (id, updates)  => set(s => ({ trips: s.trips.map(t => t.id === id ? { ...t, ...updates } : t) })),
+        deleteTrip: (id)           => set(s => ({ trips: s.trips.filter(t => t.id !== id) })),
+        unlockTrip: (id)           => set(s => ({
+          trips: s.trips.map(t => t.id === id ? { ...t, isPremium: true } : t),
+          purchases: [...s.purchases, { id: Math.random().toString(36).slice(2), tripId: id, purchasedAt: new Date().toISOString() }],
+        })),
 
-        addTrip: (trip) =>
-          set(s => {
-            const ids = [...new Set(trip.petIds?.length ? trip.petIds : [trip.petId])];
-            const pet = s.pets.find(p => p.id === ids[0]);
-            const checklist = pet
-              ? applyPetProfileToChecklist(trip.checklist ?? trip.scenario?.checklist ?? [], pet.dateOfBirth, pet.microchipNumber, new Date(trip.travelDate))
-              : (trip.checklist ?? trip.scenario?.checklist ?? []);
-            return { trips: [...s.trips, { ...trip, petId: ids[0], petIds: ids, checklist, isPremium: trip.isPremium ?? false }] };
+        toggleChecklistItem: (tripId, itemId) => set(s => ({
+          trips: s.trips.map(t => {
+            if (t.id !== tripId) return t;
+            const isLocked = !t.isPremium && !FREE_CHECKLIST_IDS.includes(itemId);
+            if (isLocked) return t;
+            return { ...t, checklist: t.checklist.map(c => c.id === itemId ? { ...c, completed: !c.completed } : c) };
           }),
-        updateTrip: (id, updates) =>
-          set(s => ({ trips: s.trips.map(t => t.id === id ? { ...t, ...updates } : t) })),
-        deleteTrip: (id) =>
-          set(s => ({ trips: s.trips.filter(t => t.id !== id) })),
+        })),
 
-        toggleChecklistItem: (tripId, itemId) =>
-          set(s => {
-            const trip = s.trips.find(t => t.id === tripId);
-            if (!trip || (!trip.isPremium && !FREE_CHECKLIST_IDS.includes(itemId))) return {};
-            const nowDone = !trip.checklistState[itemId]?.completed;
-            return {
-              trips: s.trips.map(t => t.id !== tripId ? t : {
-                ...t,
-                checklistState: { ...t.checklistState, [itemId]: { completed: nowDone, completedDate: nowDone ? new Date().toISOString() : undefined } },
-                checklist: (t.checklist ?? []).map((ci: ChecklistItem) => ci.id === itemId ? { ...ci, completed: nowDone } : ci),
-              }),
-            };
+        addVaccination: (petId, record) => set(s => {
+          const pets  = s.pets.map(p => p.id !== petId ? p : { ...p, vaccinations: [...(p.vaccinations ?? []), record] });
+          const pet   = pets.find(p => p.id === petId);
+          const trips = s.trips.map(t => t.petId !== petId ? t : { ...t, checklist: syncVaccsToChecklist(t.checklist, pet?.vaccinations ?? []) });
+          return { pets, trips };
+        }),
+
+        updateVaccination: (petId, recordId, updates) => set(s => ({
+          pets: s.pets.map(p => p.id !== petId ? p : {
+            ...p, vaccinations: (p.vaccinations ?? []).map(v => v.id === recordId ? { ...v, ...updates } : v),
           }),
+        })),
 
-        unlockTrip: (tripId) =>
-          set(s => ({
-            trips: s.trips.map(t => t.id !== tripId ? t : { ...t, isPremium: true }),
-            purchases: [...s.purchases, { tripId, purchasedAt: new Date().toISOString(), amountCents: 299 }],
-          })),
+        deleteVaccination: (petId, recordId) => set(s => {
+          const pets  = s.pets.map(p => p.id !== petId ? p : { ...p, vaccinations: (p.vaccinations ?? []).filter(v => v.id !== recordId) });
+          const pet   = pets.find(p => p.id === petId);
+          const trips = s.trips.map(t => t.petId !== petId ? t : { ...t, checklist: syncVaccsToChecklist(t.checklist, pet?.vaccinations ?? []) });
+          return { pets, trips };
+        }),
 
         exportAsJSON: () => {
           const { pets, trips, purchases } = get();
-          return JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), pets, trips, purchases }, null, 2);
+          return JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), pets, trips, purchases });
         },
+
         importFromJSON: (json) => {
           try {
-            const data = JSON.parse(json) as { pets?: Pet[]; trips?: Trip[]; purchases?: PurchaseRecord[] };
-            if (!data.pets || !data.trips) return { success: false, error: 'Invalid file' };
+            const data = JSON.parse(json);
+            if (!data.pets || !data.trips) return { success: false, error: 'Invalid backup: missing pets or trips' };
             set({ pets: data.pets, trips: data.trips, purchases: data.purchases ?? [] });
             return { success: true };
-          } catch (e) { return { success: false, error: String(e) }; }
+          } catch (e) {
+            return { success: false, error: `Parse error: ${(e as Error).message}` };
+          }
         },
-        clearAll: () => set({ pets: [], trips: [], purchases: [] }),
+
+        clearAll: () => {
+          set({ pets: [], trips: [], purchases: [] });
+          // Also wipe the persisted storage key so it doesn't reload on next render
+          try { localStorage.removeItem(`petroamid-${profileId}`); } catch { /* ignore */ }
+        },
       }),
-      {
-        name: `petroam-data-${profileId}`,
-        storage: createJSONStorage(() => localStorage),
-        onRehydrateStorage: () => (state) => {
-          if (!state) return;
-          state.trips = state.trips.map(trip => {
-            const petIds = trip.petIds?.length ? trip.petIds : [trip.petId];
-            const pet = state.pets.find(p => p.id === petIds[0]);
-            if (!pet) return { ...trip, petIds };
-            return { ...trip, petIds, checklist: applyPetProfileToChecklist(trip.checklist ?? [], pet.dateOfBirth, pet.microchipNumber, new Date(trip.travelDate)) };
-          });
-        },
-      },
-    ),
+      { name: `petroamid-${profileId}`, storage: createJSONStorage(() => localStorage) }
+    )
   );
 }
 
-// Store cache — one instance per profile, reused across renders
-const _cache: Record<string, ReturnType<typeof createAppStore>> = {};
-export function getAppStore(profileId: string) {
-  if (!_cache[profileId]) _cache[profileId] = createAppStore(profileId);
-  return _cache[profileId];
-}
+export type AppStore = ReturnType<ReturnType<typeof createAppStore>['getState']>;
