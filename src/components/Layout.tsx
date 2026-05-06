@@ -67,7 +67,7 @@ const NAV = [
 // ── Layout ────────────────────────────────────────────────────────────────────
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { activeProfile, logout, profiles, switchProfile } = useProfileStore();
+  const { activeProfile } = useProfileStore();
   const navigate  = useNavigate();
   const location  = useLocation();
   const profile   = activeProfile();
@@ -137,18 +137,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
                 <div style={{ fontSize: 11, color: Colors.creammid, marginTop: 2 }}>📱 Stored on this device</div>
               </div>
-              {profiles.filter(p => p.id !== profile?.id).map(p => (
-                <MenuBtn key={p.id} onClick={() => { switchProfile(p.id); setMenuOpen(false); }}>
-                  {p.avatarEmoji} Switch to {p.displayName}
-                </MenuBtn>
-              ))}
-              {profiles.filter(p => p.id !== profile?.id).length > 0 && (
-                <div style={{ borderTop: `1px solid ${Colors.borderLight}`, margin: '4px 0' }} />
-              )}
               <MenuBtn onClick={() => { navigate('/settings'); setMenuOpen(false); }}>⚙️ Settings &amp; Export</MenuBtn>
-              <MenuBtn onClick={() => { logout(); navigate('/profile'); setMenuOpen(false); }} danger>
-                🔀 Switch Profile
-              </MenuBtn>
             </div>
           )}
         </div>
