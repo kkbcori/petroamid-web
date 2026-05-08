@@ -8,6 +8,7 @@ import { COUNTRIES } from '../data/travelRequirements';
 import type { Pet, Trip } from '../store/appStore';
 import { format, differenceInDays } from 'date-fns';
 import { DashboardBanner, DASHBOARD_COLOR } from '../components/Illustrations';
+import CareDashboardSection from '../components/CareDashboardSection';
 
 export default function DashboardPage() {
   const navigate  = useNavigate();
@@ -30,6 +31,8 @@ export default function DashboardPage() {
         <QuickCard icon="🐾" title="Add a Pet"   desc="Dogs & cats"   onClick={() => navigate('/pets/add')} />
         <QuickCard icon="✈️" title="Plan a Trip" desc="Get checklist" onClick={() => pets.length > 0 ? navigate('/trips/new') : navigate('/pets/add')} />
       </div>
+
+      {pets.length > 0 && <CareDashboardSection />}
 
       {activeTrips.length > 0 && (
         <Section title="Upcoming Trips">
