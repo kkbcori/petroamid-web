@@ -7,6 +7,7 @@ import lottie, { AnimationItem } from 'lottie-web';
 // Lottie JSON imports
 import lottieHomeData     from '../assets/lottie-home.json';
 import lottiePetsData     from '../assets/lottie-mypets.json';
+import lottieCareData     from '../assets/lottie-paws.json';
 import lottieTripData     from '../assets/lottie-newtrip.json';
 import lottieStaysData    from '../assets/lottie-stays.json';
 import lottieVetsData     from '../assets/lottie-vets.json';
@@ -58,6 +59,7 @@ function LottieTabIcon({ data, isActive, size = 28, loop = false }: LottieTabIco
 const NAV = [
   { to: '/',          label: 'Home',     data: lottieHomeData,     loop: true },
   { to: '/pets',      label: 'My Pets',  data: lottiePetsData,     loop: true },
+  { to: '/care',      label: 'Care',     data: lottieCareData,     loop: true },
   { to: '/trips/new', label: 'New Trip', data: lottieTripData,     loop: true },
   { to: '/stays',     label: 'Stays',    data: lottieStaysData,    loop: true },
   { to: '/vets',      label: 'Vets',     data: lottieVetsData,     loop: true },

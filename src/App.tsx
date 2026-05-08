@@ -11,6 +11,8 @@ import ChecklistPage from './pages/ChecklistPage';
 import SettingsPage  from './pages/SettingsPage';
 import StaysPage     from './pages/StaysPage';
 import VetsPage      from './pages/VetsPage';
+import CarePage      from './pages/CarePage';
+import CareSetupPage from './pages/CareSetupPage';
 import Layout        from './components/Layout';
 
 function Guard({ children }: { children: React.ReactNode }) {
@@ -32,6 +34,8 @@ export default function App() {
         <Route path="/pets"             element={<Wrap><PetsPage /></Wrap>} />
         <Route path="/pets/add"         element={<Wrap><AddPetPage /></Wrap>} />
         <Route path="/pets/edit/:petId" element={<Wrap><AddPetPage /></Wrap>} />
+        <Route path="/care"             element={<Wrap><CarePage /></Wrap>} />
+        <Route path="/care/setup/:petId" element={<Wrap><CareSetupPage /></Wrap>} />
         <Route path="/trips/new"        element={<Wrap><TripSetupPage /></Wrap>} />
         <Route path="/trips/:tripId"    element={<Wrap><ChecklistPage /></Wrap>} />
         <Route path="/stays"            element={<Wrap><StaysPage /></Wrap>} />
